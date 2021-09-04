@@ -1,17 +1,26 @@
 {
   "name": "galho",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "galho",
-  "main": "app.js",
+  "browser": "index.js",
+  "main": "index.js",
+  "homepage": "https://github.com/AsrielPires/galho",
+  "license": "MIT",
   "author": {
-    "name": ""
+    "name": "Asriel Pires",
+    "email": "bebether@gmail.com"
   },
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean"
   },
   "devDependencies": {
-    "@types/node": "^14.14.7",
     "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "inutil": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "csstype": ""
   }
 }
