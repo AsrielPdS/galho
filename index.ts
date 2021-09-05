@@ -1,6 +1,6 @@
 ////import * as _ from "./util";
 import { Properties } from "csstype";
-import { deepExtend, ET, isA, isEmpty, isF, isN, isP, isS as isT } from "inutil";
+import { deepExtend, ET, isA, isEmpty, isF, isN, isP, isS, isO } from "inutil";
 
 
 
@@ -40,8 +40,10 @@ module g {
   }
 
   // #region core
-  export abstract class E<M = {}, Events extends Dic = {}> extends ET<Events & { update: EUpdate<M>; }> implements Render {
-    model: M;
+  export abstract class E<M = {}, Events extends Dic = {}> extends ET<Events & { update: Partial<M>; }> implements Render {
+    dt: M;
+    /**@deprecated */
+    get model() { return this.dt; }
 
     /** Content rendered, filled when render is called*/
     $: S;
@@ -49,14 +51,14 @@ module g {
     private bonds: Array<Bind<this, M, any>> = [];
     validators: Dic<Array<(value, field) => boolean | void>>;
 
-    constructor(model?: M) {
+    constructor(dt?: M) {
       super();
-      if (!model) model = <any>{};
+      if (!dt) dt = <any>{};
 
       if ((<typeof E>this.constructor).default)
-        deepExtend(<any>model, (<typeof E>this.constructor).default);
+        deepExtend(<any>dt, (<typeof E>this.constructor).default);
 
-      this.model = model;
+      this.dt = dt;
     }
     protected abstract view(): One<ANYElement>;
 
@@ -93,7 +95,7 @@ module g {
 
     removeKey(key: string | string[]) {
       if (typeof key == 'string')
-        delete this.model[key];
+        delete this.dt[key];
       return this;
     }
 
@@ -139,66 +141,62 @@ module g {
      */
     update(values: Partial<M>): this;
     update(key?: string | Partial<M> | string[], value?) {
-      let
-        model = this.model,
-        binds = this.bonds,
-        event: EUpdate;
-      if (typeof key === 'object') {
-        if (key instanceof Array) {
+      let dt = this.dt, binds = this.bonds;
+      if (isO(key)) {
+        if (isA(key)) {
           let t: Partial<M> = {};
           for (let i = 0; i < key.length; i++) {
             let t2 = key[i]
-            t[t2] = model[t2];
+            t[t2] = dt[t2];
           }
           key = t;
         } else {
           for (let k in key) {
             let val = key[k];
-            if (val === model[k] || (this.validators && !this._valid(k, val)))
+            if (val === dt[k] || (this.validators && !this._valid(k, val)))
               delete key[k];
-            else model[k] = val;
+            else dt[k] = val;
           }
           if (isEmpty(key)) return this;
 
         }
-        event = new EUpdate(key);
         for (let i = 0; i < binds.length; i++) {
           let bind = binds[i];
           if (!bind.prop || bind.prop in key)
-            bind.handler.call(this, bind.e, event);
+            bind.handler.call(this, bind.e, key);
         }
 
       } else if (!key) {
-        event = new EUpdate(model);
+        // event = new EUpdate(dt);
         for (let i = 0; i < binds.length; i++) {
           let bind = binds[i];
-          bind.handler.call(this, bind.e, event);
+          bind.handler.call(this, bind.e, dt);
         }
       } else {
-        if (model[key] === value || (this.validators && !this._valid(key, value)))
+        if (dt[key] === value || (this.validators && !this._valid(key, value)))
           return this;
 
         let state = { [key]: value };
-        model[key] = value;
+        dt[key] = value;
 
-        event = new EUpdate(state);
+        // event = new EUpdate(state);
         for (let i = 0; i < binds.length; i++) {
           let bind = binds[i];
           if (!bind.prop || bind.prop === key)
-            bind.handler.call(this, bind.e, event);
+            bind.handler.call(this, bind.e, state);
         }
         //key = state;
       }
 
-      this.trigger('update', <any>event);
+      // this.trigger('update', <any>event);
       return this;
     }
 
     toggle(key: keyof M) {
-      this.update(key, <any>!this.model[key]);
+      this.update(key, <any>!this.dt[key]);
     }
     clone(): this {
-      return new (<any>this.constructor)(this.model);
+      return new (<any>this.constructor)(this.dt);
     }
 
 
@@ -208,7 +206,7 @@ module g {
      * @param handler
      * @param prop
      */
-    bind<K extends keyof M, EE extends E<any, any>>(e: EE, handler: BindHandler<this, M, EE>, prop?: K, noInit?: boolean): S;
+    bind<K extends keyof M, R extends Render>(e: R, handler: BindHandler<this, M, R>, prop?: K, noInit?: boolean): S;
     /**
      * 
      * @param s
@@ -216,17 +214,16 @@ module g {
      * @param prop
      */
     bind<K extends keyof M, T extends ANYElement>(s: S<T>, handler: BindHandler<this, M, S<T>>, prop?: K, noInit?: boolean): S<T>;
-    bind(element: E<any, any> | S, handler: BindHandler<this, M, any>, prop?: string, noInit?: boolean) {
-      var event: any = new EUpdate(this.model);
-      if (element instanceof E) {
+    bind(element: Render | S, handler: BindHandler<this, M, any>, prop?: string, noInit?: boolean) {
+      if ('render' in element) {
         this.bonds.push({ e: element, handler: handler, prop: prop });
         if (!noInit)
-          handler.call(this, element, event);
+          handler.call(this, element, this.dt);
         return element.render();
       } else {
         this.bonds.push({ e: element, handler: handler, prop: prop });
         if (!noInit)
-          handler.call(this, element, event);
+          handler.call(this, element, this.dt);
         return element;
       }
     }
@@ -256,7 +253,7 @@ module g {
           //if (reloading)
           //  reloading = false;
           //else {
-          var t = this.model[prop];
+          var t = this.dt[prop];
           s.prop(fieldSet, t == null ? '' : t);
           //}
         }, <any>prop);
@@ -290,7 +287,7 @@ module g {
           //  let t = this.model[prop];
           //  if (t !== s.model[fieldSet]) {
           //    reloading = true;
-          s.update(<any>fieldSet, this.model[prop]);
+          s.update(<any>fieldSet, this.dt[prop]);
           //}
           //}
 
@@ -325,7 +322,7 @@ module g {
     on<K extends keyof HTMLElementEventMap>(action: K[], listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): this;
     on(event: string | string[] | HTMLEventMap<T> | SVGEventMap<T>, listener?, options?: AddEventListenerOptions) {
       let on: Dic = this.e['_on'] || (this.e['_on'] = {});
-      if (isT(event)) {
+      if (isS(event)) {
         if (listener) {
           (on[event] || (on[event] = [])).push(listener);
 
@@ -727,7 +724,7 @@ module g {
     childs<T extends ANYElement = HTMLElement>(filter: (child: S) => boolean): M<T>;
     childs(filter?: ((child: S) => boolean) | string | number, to?: number) {
       let childs = this.e.children;
-      if (isT(filter)) {
+      if (isS(filter)) {
         let t = [];
         for (let i = 0; i < childs.length; i++) {
           let child = childs[i];
@@ -883,7 +880,7 @@ module g {
     css(styles: Properties): this;
 
     css(csss: Properties | string, value?): this {
-      if (isT(csss))
+      if (isS(csss))
         this.e.style[csss] = value as string;
 
       else for (let css in csss)
@@ -1067,7 +1064,7 @@ module g {
         super(input);
       else {
         let r;
-        if (isT(input))
+        if (isS(input))
           r = document.querySelectorAll(input);
         else if ('length' in input) {
           r = [];
@@ -1148,7 +1145,7 @@ module g {
     child(index?: number): M;
     child(filter?: string | number) {
       let result: Element[];
-      if (isT(filter)) {
+      if (isS(filter)) {
         result = [];
         for (let i = 0; i < this.length; i++) {
           let childs = this[i].children;
@@ -1295,7 +1292,7 @@ module g {
     push(...cls: Array<string | string[]>) {
       for (let t of cls) {
         if (t)
-          for (let t2 of isT(t) ? t.split(' ') : t)
+          for (let t2 of isS(t) ? t.split(' ') : t)
             if (t2)
               super.push(t2);
       }
@@ -1321,18 +1318,6 @@ module g {
   // #endregion
   export type css = Properties;
 
-  export class EUpdate<M = any, K extends keyof M = keyof M> {
-    constructor(public values: M) { }
-    has(key: K) {
-      return key in this.values;
-    }
-    hasAny(keys: K[]) {
-      for (let key of keys)
-        if (key in this.values)
-          return true;
-      return false;
-    }
-  }
 
   export interface Render {
     render(): S<any>;
@@ -1355,9 +1340,9 @@ module g {
     [key: string]: any;
   }
 
-  export type BindHandler<T, M, B> = (this: E<M>, s: B, model: EUpdate<M>) => void;
+  export type BindHandler<T, M, B> = (this: E<M>, s: B, model:M) => void;
   export interface Bind<T, M, K extends keyof M> {
-    e: S | E<any, any>,
+    e: S | Render,
     prop: K,
     handler: BindHandler<T, M, E<any> | S>;
   }
