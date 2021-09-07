@@ -1,6 +1,6 @@
 {
   "name": "galho",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "galho",
   "browser": "index.js",
   "main": "index.js",
@@ -14,13 +14,10 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean"
   },
-  "devDependencies": {
-    "typescript": "^4.0.5"
-  },
   "dependencies": {
-    "inutil": ""
+    "inutil": "*"
   },
   "optionalDependencies": {
-    "csstype": ""
+    "csstype": "*"
   }
 }
