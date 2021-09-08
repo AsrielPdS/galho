@@ -1,17 +1,17 @@
 ////import * as _ from "./util";
 import { Properties } from "csstype";
-import { deepExtend, ET, isA, isEmpty, isF, isN, isP, isS, isO } from "inutil";
-
-
 
 function g<K extends keyof HTMLElementTagNameMap>(element: K, props?: Partial<HTMLElementTagNameMap[K]> | string | string[] | 0, childs?): g.S<HTMLElementTagNameMap[K]>;
 function g<T extends g.ANYElement = HTMLElement>(element: g.Create, props?: Partial<T> | string | string[] | 0, childs?): g.S<T>;
-
-function g(element, attrs?, childs?): g.S {
+function g(element: any, attrs?: any, childs?: any): g.S {
   return g.g(element, attrs, childs);
 }
 
 module g {
+  type num = number;
+  type str = string;
+  type bool = boolean;
+  interface Dic<T = any> { [key: string]: T; }
 
   export function g<K extends keyof HTMLElementTagNameMap>(element: K, props?: Partial<HTMLElementTagNameMap[K]> | string | string[] | 0, childs?): g.S<HTMLElementTagNameMap[K]>;
   export function g<T extends g.ANYElement = HTMLElement>(element: g.Create, props?: Partial<T> | string | string[] | 0, childs?): g.S<T>;
@@ -39,7 +39,103 @@ module g {
     return <S>result;
   }
 
+  export function clone<T extends Object>(obj: T): T {
+    if (typeof obj === 'object') {
+      let nObj: any;
+      if (obj instanceof Array) {
+        nObj = Array(obj.length);
+        for (let i = 0; i < obj.length; i++)
+          nObj[i] = clone(obj[i]);
+      } else {
+        nObj = {};
+        for (let key in obj)
+          nObj[key] = clone(obj[key]);
+      }
+      obj = nObj;
+    }
+    return obj;
+  }
+  export function deepExtend<T extends object, U extends object>(obj: T, extension: U): T & U {
+    for (let key in extension) {
+      let value2 = extension[<string>key];
+
+      if (obj[<string>key] !== undefined) {
+        let value1 = obj[<string>key];
+        if (value2 && value2.__proto__ == Object.prototype && value1 && value1.__proto__ == Object.prototype) {
+          deepExtend(value1, value2);
+        }
+      } else if (value2 && value2.__proto__ == Object.prototype)
+        obj[<string>key] = clone(value2);
+      else obj[<string>key] = value2;
+
+    }
+    return <any>obj;
+  }
+  export const isS = (value: unknown): value is string => typeof value === 'string';
   // #region core
+  export interface EventListenerOptions {
+    delay?: num,
+    once?: bool,
+    passive?: bool;
+  }
+  export type EventTargetCallback<T, E = any> = ((this: T, e: E) => any) & { options?: EventListenerOptions; };
+  /**event target */
+  export class ET<T extends Dic = Dic> {
+    /**event handlers */
+    readonly __eh: Dic<EventTargetCallback<this>[]> = {};
+
+    on<K extends keyof T>(event: K, callback: EventTargetCallback<this, T[K]>, options?: EventListenerOptions): this {
+      if (callback) {
+        if (!(event in this.__eh)) {
+          this.__eh[<any>event] = [];
+        }
+        if (options)
+          callback.options = options;
+
+        this.__eh[<any>event].push(callback);
+      }
+      return this;
+    }
+
+    off<K extends keyof T>(event: K, callback?: EventTargetCallback<this, T[K]>) {
+      if (event in this.__eh) {
+
+        if (callback) {
+          var stack = this.__eh[<any>event];
+          for (let i = 0, l = stack.length; i < l; i++) {
+            if (stack[i] === callback) {
+              stack.splice(i, 1);
+              return;
+            }
+          }
+        } else delete this.__eh[<any>event];
+      }
+      return this;
+    }
+
+    trigger<K extends keyof T>(event: K, data?: T[K]) {
+      let stack = this.__eh[<any>event];
+      if (stack && stack.length) {
+        for (let i = 0, l = stack.length; i < l; i++) {
+          let e = stack[i];
+          if (e.options) {
+            if (e.options.once)
+              stack.splice(i--, 1);
+            if (e.options.delay) {
+              setTimeout(() => {
+                e.call(this, data);
+              }, e.options.delay);
+              continue;
+            }
+          }
+
+          if (e.call(this, data) === false)
+            return false;
+        }
+      } else return -1;
+      return true;
+    }
+  }
   export abstract class E<M = {}, Events extends Dic = {}> extends ET<Events & { update: Partial<M>; }> implements Render {
     dt: M;
     /**@deprecated */
@@ -142,8 +238,8 @@ module g {
     update(values: Partial<M>): this;
     update(key?: string | Partial<M> | string[], value?) {
       let dt = this.dt, binds = this.bonds;
-      if (isO(key)) {
-        if (isA(key)) {
+      if (typeof key == "object") {
+        if (Array.isArray(key)) {
           let t: Partial<M> = {};
           for (let i = 0; i < key.length; i++) {
             let t2 = key[i]
@@ -157,8 +253,7 @@ module g {
               delete key[k];
             else dt[k] = val;
           }
-          if (isEmpty(key)) return this;
-
+          if (!Object.keys(key).length) return this;
         }
         for (let i = 0; i < binds.length; i++) {
           let bind = binds[i];
@@ -328,7 +423,7 @@ module g {
 
           this.e.addEventListener(event, listener, options);
         }
-      } else if (isA(event)) {
+      } else if (Array.isArray(event)) {
         for (let e of event) {
           (on[e] || (on[e] = [])).push(listener);
           this.e.addEventListener(e, listener, options);
@@ -479,7 +574,7 @@ module g {
               this.e.insertAdjacentElement(position, <Element>child);
 
             else if (!child) break;
-            else if (isP(child))
+            else if (typeof child.then == "function")
               child.then(c => this.put(position, c));
             //if 'afterbegin' or 'afterend' insert from last to first to mantain order;
             else if (position[0] == 'a')
@@ -732,9 +827,9 @@ module g {
             t.push(child);
         }
         return new M(t);
-      } else if (isN(filter)) {
+      } else if (typeof filter == "number") {
         return new M<T>(Array.prototype.slice.call(childs, filter, to));
-      } else if (isF(filter))
+      } else if (typeof filter == "function")
         return new M<any>(Array.from(childs).filter(c => filter(new S(<any>c))));
       else {
         return new M<any>(childs);
@@ -1060,7 +1155,7 @@ module g {
     constructor(input?: number | string | ArrayLike<T | S<T>>, context?) {
       if (input == null)
         super();
-      else if (isN(input))
+      else if (typeof input == "number")
         super(input);
       else {
         let r;
@@ -1155,7 +1250,7 @@ module g {
               result.push(child);
           }
         }
-      } else if (isN(filter)) {
+      } else if (typeof filter == "number") {
         result = Array(filter);
         for (let i = 0; i < this.length; i++)
           result[i] = this[i].children[filter];
@@ -1183,7 +1278,7 @@ module g {
     find(filter: string): T;
     find(filter: string | ((value: T, index: number, obj: T[]) => boolean), thisArgs?) {
       if (typeof filter === 'string') {
-        for (var i = 0, e = this.a; i < this.length; e = this[++i])
+        for (var i = 0, e = this[0]; i < this.length; e = this[++i])
           if (e.matches(filter))
             return e;
       } else return super.find(filter, thisArgs);
@@ -1296,7 +1391,7 @@ module g {
             if (t2)
               super.push(t2);
       }
-      return this.l;
+      return this.length;
     }
     tryAdd(cls: string) {
       if (!this.includes(cls))
@@ -1306,7 +1401,7 @@ module g {
   }
   export function cls(...cls: Array<string | string[]>) {
     let c = new Cls;
-    if (cls.l)
+    if (cls.length)
       c.push(...cls);
     return c;
   }
@@ -1340,7 +1435,7 @@ module g {
     [key: string]: any;
   }
 
-  export type BindHandler<T, M, B> = (this: E<M>, s: B, model:M) => void;
+  export type BindHandler<T, M, B> = (this: E<M>, s: B, model: M) => void;
   export interface Bind<T, M, K extends keyof M> {
     e: S | Render,
     prop: K,
