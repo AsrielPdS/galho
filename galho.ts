@@ -1,5 +1,10 @@
 ////import * as _ from "./util";
-import { Properties } from "csstype";
+import { Properties, PropertiesHyphen } from "csstype";
+
+type int = number;
+type str = string;
+type bool = boolean;
+interface Dic<T = any> { [key: string]: T; }
 
 function g<K extends keyof HTMLElementTagNameMap>(element: K, props?: Partial<HTMLElementTagNameMap[K]> | string | string[] | 0, childs?): g.S<HTMLElementTagNameMap[K]>;
 function g<T extends g.ANYElement = HTMLElement>(element: g.Create, props?: Partial<T> | string | string[] | 0, childs?): g.S<T>;
@@ -8,17 +13,13 @@ function g(element: any, attrs?: any, childs?: any): g.S {
 }
 
 module g {
-  type num = number;
-  type str = string;
-  type bool = boolean;
-  interface Dic<T = any> { [key: string]: T; }
 
   export function g<K extends keyof HTMLElementTagNameMap>(element: K, props?: Partial<HTMLElementTagNameMap[K]> | string | string[] | 0, childs?): g.S<HTMLElementTagNameMap[K]>;
   export function g<T extends g.ANYElement = HTMLElement>(element: g.Create, props?: Partial<T> | string | string[] | 0, childs?): g.S<T>;
   export function g(element: Create, props?: string | string[] | Dic, child?/*: Child*/): S {
     if (!element) return S.empty;
 
-    var result =
+    let result =
       typeof (element) === 'string' ?
         //element.indexOf('-') ? element.f :
         new S(document.createElement(element)) :
@@ -34,10 +35,11 @@ module g {
       else result.props(<Dic>props)
 
     if (child != null)
-      result.put(be, child);
+      add(result.e, child);
 
     return <S>result;
   }
+  export const div = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) => g("div", props, child);
 
   export function clone<T extends Object>(obj: T): T {
     if (typeof obj === 'object') {
@@ -74,7 +76,7 @@ module g {
   export const isS = (value: unknown): value is string => typeof value === 'string';
   // #region core
   export interface EventListenerOptions {
-    delay?: num,
+    delay?: int,
     once?: bool,
     passive?: bool;
   }
@@ -113,7 +115,7 @@ module g {
       return this;
     }
 
-    trigger<K extends keyof T>(event: K, data?: T[K]) {
+    emit<K extends keyof T>(event: K, data?: T[K]) {
       let stack = this.__eh[<any>event];
       if (stack && stack.length) {
         for (let i = 0, l = stack.length; i < l; i++) {
@@ -135,26 +137,34 @@ module g {
       } else return -1;
       return true;
     }
-  }
-  export abstract class E<M = {}, Events extends Dic = {}> extends ET<Events & { update: Partial<M>; }> implements Render {
-    dt: M;
     /**@deprecated */
-    get model() { return this.dt; }
+    trigger?<K extends keyof T>(event: K, data?: T[K]) {
+      return this.emit(event, data);
+    }
+  }
+  type EEv<Ev, I> = Ev & { update: Partial<I>; };
+  export abstract class E<I = {}, Events extends Dic = {}> extends ET<EEv<Events, I>> implements Render {
+    /**interface  */
+    i: I;
+    /**@deprecated */
+    get dt() { return this.i; }
+    /**@deprecated */
+    get model() { return this.i; }
 
     /** Content rendered, filled when render is called*/
     $: S;
     protected static default: any;
-    private bonds: Array<Bind<this, M, any>> = [];
+    private bonds: Array<Bind<this, I, any>> = [];
     validators: Dic<Array<(value, field) => boolean | void>>;
 
-    constructor(dt?: M) {
+    constructor(dt?: I) {
       super();
       if (!dt) dt = <any>{};
 
       if ((<typeof E>this.constructor).default)
         deepExtend(<any>dt, (<typeof E>this.constructor).default);
 
-      this.dt = dt;
+      this.i = dt;
     }
     protected abstract view(): One<ANYElement>;
 
@@ -191,12 +201,12 @@ module g {
 
     removeKey(key: string | string[]) {
       if (typeof key == 'string')
-        delete this.dt[key];
+        delete this.i[key];
       return this;
     }
 
 
-    addValidators<K extends keyof M>(field: K, validator: (value: M[K], field: K) => boolean | void) {
+    addValidators<K extends keyof I>(field: K, validator: (value: I[K], field: K) => boolean | void) {
       ((this.validators ||= {})[<str>field] ||= []).push(validator);
       return this;
     }
@@ -218,29 +228,29 @@ module g {
       return true;
     }
     /**rebind entiry E */
-    update(): this;
+    set(): this;
     /**
      * 
      * @param key
      */
-    update<K extends keyof M>(key: K[]): this;
+    set<K extends keyof I>(key: K[]): this;
     /**
      * 
      * @param key
      * @param value
      */
-    update<K extends keyof M>(key: K, value: Pick<M, K>): this;
-    update<K extends keyof M>(key: K, value: M[K]): this;
+    set<K extends keyof I>(key: K, value: Pick<I, K>): this;
+    set<K extends keyof I>(key: K, value: I[K]): this;
     /**
      * 
      * @param values
      */
-    update(values: Partial<M>): this;
-    update(key?: string | Partial<M> | string[], value?) {
-      let dt = this.dt, binds = this.bonds;
+    set(values: Partial<I>): this;
+    set(key?: string | Partial<I> | string[], value?) {
+      let dt = this.i, binds = this.bonds;
       if (typeof key == "object") {
         if (Array.isArray(key)) {
-          let t: Partial<M> = {};
+          let t: Partial<I> = {};
           for (let i = 0; i < key.length; i++) {
             let t2 = key[i]
             t[t2] = dt[t2];
@@ -287,11 +297,20 @@ module g {
       return this;
     }
 
-    toggle(key: keyof M) {
-      this.update(key, <any>!this.dt[key]);
+    toggle(key: keyof I) {
+      this.set(key, <any>!this.i[key]);
+    }
+    on(callback: EventTargetCallback<this, Partial<I>>): this;
+    on<K extends keyof EEv<Events, I>>(event: K, callback: EventTargetCallback<this, (EEv<Events, I>)[K]>, options?: EventListenerOptions): this
+    on(key: any, cb?: EventTargetCallback<this, I>, opts?: EventListenerOptions) {
+      if (typeof key == "function") {
+        cb = key;
+        key = "update";
+      }
+      return super.on(key, cb, opts);
     }
     clone(): this {
-      return new (<any>this.constructor)(this.dt);
+      return new (<any>this.constructor)(this.i);
     }
 
 
@@ -301,24 +320,24 @@ module g {
      * @param handler
      * @param prop
      */
-    bind<K extends keyof M, R extends Render>(e: R, handler: BindHandler<this, M, R>, prop?: K, noInit?: boolean): S;
+    bind<K extends keyof I, R extends Render>(e: R, handler: BindHandler<this, I, R>, prop?: K, noInit?: boolean): S;
     /**
      * 
      * @param s
      * @param handler
      * @param prop
      */
-    bind<K extends keyof M, T extends ANYElement>(s: S<T>, handler: BindHandler<this, M, S<T>>, prop?: K, noInit?: boolean): S<T>;
-    bind(element: Render | S, handler: BindHandler<this, M, any>, prop?: string, noInit?: boolean) {
+    bind<K extends keyof I, T extends ANYElement>(s: S<T>, handler: BindHandler<this, I, S<T>>, prop?: K, noInit?: boolean): S<T>;
+    bind(element: Render | S, handler: BindHandler<this, I, any>, prop?: string, noInit?: boolean) {
       if ('render' in element) {
         this.bonds.push({ e: element, handler: handler, prop: prop });
         if (!noInit)
-          handler.call(this, element, this.dt);
+          handler.call(this, element, this.i);
         return element.render();
       } else {
         this.bonds.push({ e: element, handler: handler, prop: prop });
         if (!noInit)
-          handler.call(this, element, this.dt);
+          handler.call(this, element, this.i);
         return element;
       }
     }
@@ -328,7 +347,7 @@ module g {
     * @param src propiedade do model que sera feito o bind
     * @param target propiedade no bind onde se retirara o dado
     */
-    inputBind<K extends keyof M>(element: E<any, { input: unknown }>, src: K, target?: string): S;
+    inputBind<K extends keyof I>(element: E<any, { input: unknown }>, src: K, target?: string): S;
     /**
      * 
      * @param element Elemento onde sera feito o bind
@@ -336,19 +355,19 @@ module g {
      * @param fieldSet propiedade no bind onde se retirara o dado 
      * @param fieldGet propiedade no bind onde sera reposto o dado
      */
-    inputBind<K extends keyof M>(element: S<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, prop: K, fieldSet?: string, fieldGet?: string): S;
+    inputBind<K extends keyof I>(element: S<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, prop: K, fieldSet?: string, fieldGet?: string): S;
     inputBind(s: S | E<any, { input: unknown }>, prop: string, fieldSet: string = 'value', fieldGet = fieldSet) {
       if (s instanceof S) {
         //s.prop(fieldSet, this.model[prop] || '');
         s.on('input', (e) => {
           let v = e.target[fieldGet];
-          this.update(<any>prop, v === '' || (typeof v === 'number' && isNaN(v)) ? null : v);
+          this.set(<any>prop, v === '' || (typeof v === 'number' && isNaN(v)) ? null : v);
         });
         this.bind(s, () => {
           //if (reloading)
           //  reloading = false;
           //else {
-          var t = this.dt[prop];
+          var t = this.i[prop];
           s.prop(fieldSet, t == null ? '' : t);
           //}
         }, <any>prop);
@@ -358,7 +377,7 @@ module g {
         //let _this = this;
         //s.update(<any>fieldGet, this.model[prop]);
         s.on('input', (value) => {
-          this.update(<any>prop, <any>value);
+          this.set(<any>prop, <any>value);
         });
         //s.on('update', (model: EUpdate) => {
         //  if (model.has(fieldSet)) {
@@ -382,7 +401,7 @@ module g {
           //  let t = this.model[prop];
           //  if (t !== s.model[fieldSet]) {
           //    reloading = true;
-          s.update(<any>fieldSet, this.dt[prop]);
+          s.set(<any>fieldSet, this.i[prop]);
           //}
           //}
 
@@ -399,7 +418,32 @@ module g {
     /**element by serialize to json*/
     private toJSON() { }
   }
+  function add(e: ParentNode, child: any) {
+    switch (typeof child) {
+      case 'object':
+        if (child)
+          if (
+            child instanceof S ? (child = child.e) :
+              'render' in child ? (child = child.render().e) :
+                child instanceof Element)
+            e.append(<Element>child);
 
+          else if (!child) break;
+          else if (typeof child.then == "function")
+            child.then(c => add(e, c));
+          else for (let i = 0, l = child.length; i < l; i++)
+            add(e, child[i]);
+        break;
+      case 'string':
+      case 'number':
+      case 'bigint':
+        e.append(<string>child);
+        break;
+      case 'function':
+        add(e, child());
+        break;
+    }
+  }
   /**Macro document Single Selection, Manipulate only one element per time */
   export class S<T extends ANYElement = HTMLElement> {
     constructor();
@@ -479,10 +523,15 @@ module g {
       });
       return this;
     }
-
-    trigger(name: string, event = new Event(name)) {
-      this.e.dispatchEvent(event);
+    emit(name: str, event?: EventInit): this;
+    emit(event: Event): this;
+    emit(event: str | Event, init?: EventInit) {
+      this.e.dispatchEvent(typeof event == "string" ? new Event(event, init) : event);
       return this;
+    }
+    /** @deprecated */
+    trigger(a, b?) {
+      return this.emit(a, b);
     }
     click() {
       (<HTMLElement>this.e).click();
@@ -562,8 +611,8 @@ module g {
     }
 
     static empty = new S<any>();
-
-    put(position: InsertPosition, child): this {
+    static is(value: any): value is S { return value && 'e' in value; }
+    put(position: InsertPosition, child: any): this {
       switch (typeof child) {
         case 'object':
           if (child)
@@ -594,28 +643,33 @@ module g {
       }
       return this;
     }
-    insertAfter(child/*: Child*/): this {
+    putAfter(child/*: Child*/): this {
       return this.put('afterend', child);
     }
-    insertBefore(child/*: Child*/): this {
+    putBefore(child/*: Child*/): this {
       return this.put('beforebegin', child);
     }
 
-    insertText(pos: InsertPosition, text: string | number) {
+    putText(pos: InsertPosition, text: string | number) {
       this.e.insertAdjacentText(pos, <any>text);
       return this;
     }
-    insertHTML(pos: InsertPosition, html: string) {
+    putHTML(pos: InsertPosition, html: string) {
       this.e.insertAdjacentHTML(pos, html);
       return this;
     }
 
-    /**
-     * Append element and return them
-     * @param element
-     */
+    /**  Append element and return them */
     add(child/*: Child*/): this {
-      return this.put(be, child);
+      add(this.e, child);
+      return this;
+    }
+    /**append element using DocumentFragment */
+    frag(child/*: Child*/): this {
+      let doc = new DocumentFragment();
+      add(doc, child);
+      this.e.append(doc);
+      return this;
     }
     /**
      * Append element in begin
@@ -650,8 +704,8 @@ module g {
      * this method is not aconselhavel use append when possible
      * @param html
      */
-    appendHTML(html: string) {
-      return this.insertHTML(be, html);
+    addHTML(html: string) {
+      return this.putHTML("beforebegin", html);
     }
 
     /**
@@ -660,7 +714,8 @@ module g {
      */
     set(child?/*: Child*/): this {
       this.e.textContent = '';
-      return this.put(be, child);
+      add(this.e, child);
+      return this;
     }
 
 
@@ -678,7 +733,7 @@ module g {
 
       return this;
     }
-    insertIn(position: InsertPosition, parent: Element | S) {
+    putIn(position: InsertPosition, parent: Element | S) {
       (parent instanceof S ? parent.e : parent)
         .insertAdjacentElement(position, this.e);
 
@@ -885,23 +940,7 @@ module g {
       return new M(l);
     }
 
-    /**
-     * get the controller of element of this item or the first ancester that is controlled if bubble is true
-     * @param filter
-     * @param bubble
-     */
-    E<T = unknown>(bubble: boolean = true, filter?: { new(...args: any[]): T }): T {
-      var e = this.e;
 
-      if (bubble)
-        do {
-          let c = e['$'];
-          if (c && (!filter || c instanceof filter))
-            return c;
-        } while (e = <any>e.parentElement);
-
-      return e['$'] || null;
-    }
 
     clone(): S;
     clone(deep: boolean): S;
@@ -909,14 +948,13 @@ module g {
       return new S(<Element>this.e.cloneNode(deep));
     }
 
-    next() {
-      return new S(this.e.nextElementSibling);
-    }
-
     prev() {
       return new S(this.e.previousElementSibling);
     }
 
+    next() {
+      return new S(this.e.nextElementSibling);
+    }
     //properties manipulation
     prop<K extends keyof T>(key: K): T[K];
     prop<T = any>(key: string): T;
@@ -1009,10 +1047,14 @@ module g {
      * remove inline style
      * @param properties
      */
-    removeCss(properties: Array<string>) {
+    uncss(properties: Array<keyof Properties>) {
       for (let i = 0; i < properties.length; i++)
         this.e.style.removeProperty(properties[i]);
       return this;
+    }
+    /** @deprecated */
+    removeCss(properties: Array<keyof Properties>) {
+      return this.uncss(properties);
     }
     clearCss() {
       this.e.removeAttribute('style');
@@ -1040,11 +1082,10 @@ module g {
       this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, typeof names === 'string' ? names.trim().split(' ').filter(n => n) : names);
       return this;
     }
-
-    toggleClass(names: string) {
-      for (var n of names.split(' '))
-        if (n !== '')
-          this.e.classList.toggle(n.replace(' ', ''));
+    /**toogle class */
+    tcls(names: string) {
+      for (let n of names.split(' '))
+        if (n) this.e.classList.toggle(n.replace(' ', ''));
       return this;
     }
     hasClass(name: string) {
@@ -1126,11 +1167,11 @@ module g {
       return this.e.classList.contains(cls);
     }
     /**bind data to element */
-    data(data: any): this;
+    d(data: any): this;
     /**get data binded in the first element in the selection */
-    data(): any;
-    data(data?: any) {
-      if (!arguments.length)
+    d<T = unknown>(): T;
+    d(data?: any) {
+      if (data === undefined)
         return this.e['_d'];
 
       this.e['_d'] = data;
@@ -1191,9 +1232,11 @@ module g {
       }
       return this;
     }
-    setClass(names: string[], set?: boolean): this {
-      for (let i = 0; i < this.length; i++)
-        this[i].classList[set === false ? 'remove' : 'add'].apply(this[i].classList, names);
+    cls(names: str[] | str, set?: boolean): this {
+      typeof names == "string" && (names = names.split(' ').filter(v => v));
+      for (let i = 0; i < this.length; i++) {
+        this[i].classList[set === false ? 'remove' : 'add'](...names);
+      }
 
       return this;
     }
@@ -1383,7 +1426,8 @@ module g {
     return new M(<string>input, context);
   }
 
-  class Cls extends Array<string> {
+  /**class list */
+  class CL extends Array<string> {
     push(...cls: Array<string | string[]>) {
       for (let t of cls) {
         if (t)
@@ -1399,8 +1443,9 @@ module g {
       return this;
     }
   }
-  export function cls(...cls: Array<string | string[]>) {
-    let c = new Cls;
+  /**class list */
+  export function cl(...cls: Array<string | string[]>) {
+    let c = new CL;
     if (cls.length)
       c.push(...cls);
     return c;
@@ -1411,13 +1456,74 @@ module g {
   // #region types
 
   // #endregion
-  export type css = Properties;
+
+
+  export function css(selector: Dic<css.Style>, tag?: S) {
+    let r = "";
+    for (let k in selector)
+      r += css.parse(k, selector[k]);
+    return tag ? tag.add(r) : g("style").text(r).addTo(document.head);
+  }
+  export module css {
+    export type Props = Properties;
+    interface Pseudo {
+      ":hover": Style;
+      ":active": Style;
+      ":focus": Style;
+      ":focus-within": Style;
+      ":autofill": Style;
+      ":checked": Style;
+      ":invalid": Style;
+      ":empty": Style;
+      ":root": Style;
+      ":enabled": Style;
+      ":disabled": Style;
+      ":link": Style;
+      ":visited": Style;
+      ":lang": Style;
+      /**for electron title bar */
+      WebkitAppRegion: "drag" | "no-drag";
+    }
+    export type Style = Properties | Pseudo | Dic<Style>;
+    export type Styles = Dic<Style>;
+
+    const subs = [">", " ", ":", "~", "+"];
+    export var defSub = ">";
+    export function sub(parent: str[], child: str) {
+      return child.split(',').map(s => {
+        let t = s[0];
+        return parent.map(p => {
+          if (t == "&")
+            return p + s.slice(1);
+          else if (subs.indexOf(t) == -1)
+            return p + defSub + s;
+          else return p + s;
+        }).join(',')
+      }).join(',');
+    }
+    export function parse(selector: string, props: css.Style) {
+      let r = "", subSel = "", split: str[];
+      for (let key in props) {
+        let val = props[key];
+        //false,null,undefined is not included
+        if (val || val === 0) {
+          if (typeof val == "object") {
+            subSel += parse(sub(split ||= selector.split(','), key), val);
+
+          } else r += key.replace(regex, m => "-" + m) + ":" + val + ";";
+        }
+      }
+      return (r ? selector + "{" + r + "}" : "") + subSel;
+    }
+    const regex = /[A-Z]/g;
+  }
 
 
   export interface Render {
     render(): S<any>;
   }
-
+  let _id = 0;
+  export const id = () => 'i' + (_id++);
   export type EventHandler<T, E> = (this: T, e: E) => any;
 
   export type ANYElement = HTMLElement | SVGElement;
@@ -1425,10 +1531,9 @@ module g {
   /**ElementNotation */
   export type Create = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | S | Render;
 
-  const be = 'beforeend';
+  // const be = 'beforeend';
 
   export interface SVGCreateProps<T> {
-    class?: string | string[],
     on?: { [K in keyof (HTMLElementEventMap & SVGElementEventMap)]?: (this: T, e: (HTMLElementEventMap & SVGElementEventMap)[K]) => any },
     css?: { [key: string]: string | number; };
     props?: Partial<T>;
@@ -1445,6 +1550,16 @@ module g {
   export type EventMap<T> = HTMLEventMap<T> | SVGEventMap<T> | { [key: string]: (this: Element, e: Event) => any; };
   export type HTMLEventMap<T> = { [K in keyof HTMLElementEventMap]?: (this: T, e: HTMLElementEventMap[K]) => any };
   export type SVGEventMap<T> = { [K in keyof SVGElementEventMap]?: (this: T, e: SVGElementEventMap[K]) => any };
-
 }
 export = g;
+
+declare global {
+  interface Event {
+    /** call stopImmediatePropagation and preventDefault */
+    off(): void;
+  }
+}
+Event.prototype.off = function () {
+  this.stopImmediatePropagation();
+  this.preventDefault();
+}

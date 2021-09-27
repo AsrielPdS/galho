@@ -2,15 +2,12 @@
   "compilerOptions": {
     "target": "ES2017",
     "removeComments": true,
-    "sourceMap": false,
-    "inlineSourceMap": true,
-    "allowJs": false,
+    "sourceMap": true,
     "lib": [ "ES2021.String", "DOM" ],
     "declaration": false,
     "module": "CommonJS",
     "alwaysStrict": true,
-    "noImplicitThis": true,
-    "allowUmdGlobalAccess": true
+    "noImplicitThis": true
   },
   "compileOnSave": true,
   "exclude": [
