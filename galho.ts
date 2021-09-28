@@ -147,8 +147,6 @@ module g {
     /**interface  */
     i: I;
     /**@deprecated */
-    get dt() { return this.i; }
-    /**@deprecated */
     get model() { return this.i; }
 
     /** Content rendered, filled when render is called*/
@@ -460,57 +458,30 @@ module g {
     on<T extends Element = Element, E extends Event = Event>(action: string, fn: EventHandler<T, E>, options?: AddEventListenerOptions): this;
     on<K extends keyof HTMLElementEventMap>(action: K[], listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): this;
     on(event: string | string[] | HTMLEventMap<T> | SVGEventMap<T>, listener?, options?: AddEventListenerOptions) {
-      let on: Dic = this.e['_on'] || (this.e['_on'] = {});
+      // let on: Dic = this.e['_on'] || (this.e['_on'] = {});
       if (isS(event)) {
-        if (listener) {
-          (on[event] || (on[event] = [])).push(listener);
+        if (listener)
+          // (on[event] || (on[event] = [])).push(listener);
 
           this.e.addEventListener(event, listener, options);
-        }
+
       } else if (Array.isArray(event)) {
-        for (let e of event) {
-          (on[e] || (on[e] = [])).push(listener);
-          this.e.addEventListener(e, listener, options);
-          //this.on(e, listener, options);
-        }
+        if (listener)
+          for (let e of event)
+            // (on[e] || (on[e] = [])).push(listener);
+            this.e.addEventListener(e, listener, options);
+
 
       } else for (let e in event) {
         let t = event[e];
-        if (t) {
-          (on[e] || (on[e] = [])).push(t);
+        if (t)
+          // (on[e] || (on[e] = [])).push(t);
           this.e.addEventListener(e, t, listener);
-        }
+
       }
-      //this.on(e, event[e], listener);
       return this;
     }
 
-    /**
-     * on passive -> add passive listener(event)
-     * @param actions
-     */
-    onP(actions: HTMLEventMap<T>): this;
-    onP(actions: SVGEventMap<T>): this;
-    onP<K extends keyof HTMLElementEventMap>(action: K, listener: (this: HTMLElement, e: HTMLElementEventMap[K]) => any): this;
-    onP<K extends keyof SVGElementEventMap>(action: K, listener: (this: SVGElement, e: SVGElementEventMap[K]) => any): this;
-    onP<T extends Element = Element, E extends Event = Event>(action: string, fn: EventHandler<T, E>): this;
-    onP<T extends Element = Element, E extends Event = Event>(action: string, fn: EventHandler<T, E>): this;
-    onP(event, listener?) {
-      return this.on(event, listener, { passive: true });
-    }
-
-    /**
-     * Add One(evento que so executa no maximo uma vez) Passive Listener 
-     * @param event
-     * @param listener
-     */
-    aopl(event, listener) {
-      return this.on(event, listener, {
-        passive: true,
-        once: true
-      });
-    }
-    //delay(actions: Dic<(this: T, e: Event) => any>): this;
     delay<K extends keyof HTMLElementEventMap>(action: K, delay: number, listener: (this: T, e: HTMLElementEventMap[K]) => any): this;
     delay<K extends keyof SVGElementEventMap>(action: K, delay: number, listener: (this: T, e: SVGElementEventMap[K]) => any): this;
     delay<E extends Event = Event>(action: string, delay: number, fn: EventHandler<T, E>): this;
@@ -549,39 +520,9 @@ module g {
       return this;
     }
 
-    /**
-     * 
-     * @param event
-     */
-    off<K extends keyof HTMLElementEventMap>(event: K | K[]): this;
-
-    /**
-     * 
-     * @param event
-     * @param listener
-     */
-    off<K extends keyof HTMLElementEventMap>(event: K | K[], listener: EventListener): this;
-    ///**
-    // * 
-    // * @param event
-    // * @param listener
-    // */
-    //off(event: string | string[], listener: Function): this;
-    off(event: string | string[], listener?) {
-      if (typeof event === 'string') {
-        if (listener)
-          this.e.removeEventListener(event, listener);
-        else {
-          let listeners: Array<EventListener> = '_on' in this.e && this.e['_on'][event];
-          if (listeners) {
-            for (let l of listeners)
-              this.e.removeEventListener(event, l);
-            listeners.slice(0, listeners.length);
-          }
-        }
-      } else for (let i = 0; i < event.length; i++)
-        this.off(event[i] as any, listener);
-
+    off<K extends keyof HTMLElementEventMap>(event: K | K[], listener: EventListener) {
+      for(let e of isS(event)?[event]:event)
+      this.e.removeEventListener(e, listener);
       return this;
     }
 
@@ -1060,7 +1001,7 @@ module g {
       this.e.removeAttribute('style');
       return this;
     }
-    clearCls() {
+    uncls() {
       this.e.removeAttribute('class');
       //var cls = this.e.classList;
       //while (cls.length)
