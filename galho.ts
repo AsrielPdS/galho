@@ -30,7 +30,7 @@ module g {
             element;
 
     if (props)
-      if (typeof props === 'string' || props instanceof Array)
+      if (isS(props) || Array.isArray(props))
         result.cls(props);
       else result.props(<Dic>props)
 
@@ -521,8 +521,8 @@ module g {
     }
 
     off<K extends keyof HTMLElementEventMap>(event: K | K[], listener: EventListener) {
-      for(let e of isS(event)?[event]:event)
-      this.e.removeEventListener(e, listener);
+      for (let e of isS(event) ? [event] : event)
+        this.e.removeEventListener(e, listener);
       return this;
     }
 
@@ -985,21 +985,30 @@ module g {
       return this;
     }
     /**
+     * remove all inline style
+     * @param properties
+     */
+    uncss()
+    /**
      * remove inline style
      * @param properties
      */
-    uncss(properties: Array<keyof Properties>) {
-      for (let i = 0; i < properties.length; i++)
-        this.e.style.removeProperty(properties[i]);
+    uncss(properties: Array<keyof Properties>)
+    /**
+     * remove inline style
+     * @param properties
+     */
+    uncss(properties?: Array<keyof Properties>) {
+      if (properties)
+        for (let i = 0; i < properties.length; i++)
+          this.e.style.removeProperty(properties[i]);
+      else this.e.removeAttribute('style');
+
       return this;
     }
     /** @deprecated */
     removeCss(properties: Array<keyof Properties>) {
       return this.uncss(properties);
-    }
-    clearCss() {
-      this.e.removeAttribute('style');
-      return this;
     }
     uncls() {
       this.e.removeAttribute('class');
@@ -1284,41 +1293,17 @@ module g {
   export function xml<T extends keyof HTMLElementTagNameMap>(tag: T, props?: string | Partial<SVGElement>, child?/*: Child*/): S {
     return g(<any>document.createElementNS('http://www.w3.org/1999/xhtml', tag), props, child);
   }
-  export function svg<T extends keyof SVGElementTagNameMap>(tag: T, attrs?: string | SVGCreateProps<SVGElementTagNameMap[T]>, child?/*: Child*/) {
-    var result = new S<SVGElementTagNameMap[T]>(document.createElementNS('http://www.w3.org/2000/svg', tag));
-    if (attrs) {
-      if (typeof attrs === 'string')
-        result.cls(attrs);
-      else {
-        if (attrs.on) {
-          result.onP(attrs.on);
-          attrs.on = undefined;
-        }
-        if (attrs.css) {
-          result.css(attrs.css);
-          attrs.css = undefined;
-        }
-        if (attrs.props) {
-          result.props(attrs.props);
-          attrs.props = undefined;
-        }
-        if (attrs.class) {
-          result.cls(attrs.class);
-          attrs.class = undefined;
-        }
-
-        for (let attr in attrs) {
-          let val = attrs[attr];
-          if (val != undefined)
-            result.attr(attr, val);
-        }
-      }
-    }
+  export function svg<T extends keyof SVGElementTagNameMap>(tag: T, attrs?: string | Dic<str | number> | 0 | str | str[], child?/*: Child*/) {
+    var s = new S<SVGElementTagNameMap[T]>(document.createElementNS('http://www.w3.org/2000/svg', tag));
+    if (attrs) 
+      if (isS(attrs) || Array.isArray(attrs))
+        s.cls(attrs);
+      else s.attrs(attrs);
 
     if (child || child === 0)
-      result.add(child);
+      s.add(child);
 
-    return result;
+    return s;
   }
   export function toSVG<T extends SVGElement = SVGElement>(text: string) {
     let parser = new DOMParser(),
@@ -1473,13 +1458,6 @@ module g {
   export type Create = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | S | Render;
 
   // const be = 'beforeend';
-
-  export interface SVGCreateProps<T> {
-    on?: { [K in keyof (HTMLElementEventMap & SVGElementEventMap)]?: (this: T, e: (HTMLElementEventMap & SVGElementEventMap)[K]) => any },
-    css?: { [key: string]: string | number; };
-    props?: Partial<T>;
-    [key: string]: any;
-  }
 
   export type BindHandler<T, M, B> = (this: E<M>, s: B, model: M) => void;
   export interface Bind<T, M, K extends keyof M> {

@@ -14,7 +14,7 @@ function g(element, attrs, childs) {
                     element.render() :
                     element;
         if (props)
-            if (typeof props === 'string' || props instanceof Array)
+            if (g_1.isS(props) || Array.isArray(props))
                 result.cls(props);
             else
                 result.props(props);
@@ -129,7 +129,6 @@ function g(element, attrs, childs) {
                 deepExtend(dt, this.constructor.default);
             this.i = dt;
         }
-        get dt() { return this.i; }
         get model() { return this.i; }
         focus() {
             this.$.focus();
@@ -312,37 +311,22 @@ function g(element, attrs, childs) {
         toJSON() { }
         get valid() { return !!this.e; }
         on(event, listener, options) {
-            let on = this.e['_on'] || (this.e['_on'] = {});
             if (g_1.isS(event)) {
-                if (listener) {
-                    (on[event] || (on[event] = [])).push(listener);
+                if (listener)
                     this.e.addEventListener(event, listener, options);
-                }
             }
             else if (Array.isArray(event)) {
-                for (let e of event) {
-                    (on[e] || (on[e] = [])).push(listener);
-                    this.e.addEventListener(e, listener, options);
-                }
+                if (listener)
+                    for (let e of event)
+                        this.e.addEventListener(e, listener, options);
             }
             else
                 for (let e in event) {
                     let t = event[e];
-                    if (t) {
-                        (on[e] || (on[e] = [])).push(t);
+                    if (t)
                         this.e.addEventListener(e, t, listener);
-                    }
                 }
             return this;
-        }
-        onP(event, listener) {
-            return this.on(event, listener, { passive: true });
-        }
-        aopl(event, listener) {
-            return this.on(event, listener, {
-                passive: true,
-                once: true
-            });
         }
         delay(event, delay, handler) {
             handler = handler.bind(this.e);
@@ -372,21 +356,8 @@ function g(element, attrs, childs) {
             return this;
         }
         off(event, listener) {
-            if (typeof event === 'string') {
-                if (listener)
-                    this.e.removeEventListener(event, listener);
-                else {
-                    let listeners = '_on' in this.e && this.e['_on'][event];
-                    if (listeners) {
-                        for (let l of listeners)
-                            this.e.removeEventListener(event, l);
-                        listeners.slice(0, listeners.length);
-                    }
-                }
-            }
-            else
-                for (let i = 0; i < event.length; i++)
-                    this.off(event[i], listener);
+            for (let e of g_1.isS(event) ? [event] : event)
+                this.e.removeEventListener(e, listener);
             return this;
         }
         try(action) {
@@ -718,18 +689,17 @@ function g(element, attrs, childs) {
             return this;
         }
         uncss(properties) {
-            for (let i = 0; i < properties.length; i++)
-                this.e.style.removeProperty(properties[i]);
+            if (properties)
+                for (let i = 0; i < properties.length; i++)
+                    this.e.style.removeProperty(properties[i]);
+            else
+                this.e.removeAttribute('style');
             return this;
         }
         removeCss(properties) {
             return this.uncss(properties);
         }
-        clearCss() {
-            this.e.removeAttribute('style');
-            return this;
-        }
-        clearCls() {
+        uncls() {
             this.e.removeAttribute('class');
             return this;
         }
@@ -925,37 +895,15 @@ function g(element, attrs, childs) {
     }
     g_1.xml = xml;
     function svg(tag, attrs, child) {
-        var result = new S(document.createElementNS('http://www.w3.org/2000/svg', tag));
-        if (attrs) {
-            if (typeof attrs === 'string')
-                result.cls(attrs);
-            else {
-                if (attrs.on) {
-                    result.onP(attrs.on);
-                    attrs.on = undefined;
-                }
-                if (attrs.css) {
-                    result.css(attrs.css);
-                    attrs.css = undefined;
-                }
-                if (attrs.props) {
-                    result.props(attrs.props);
-                    attrs.props = undefined;
-                }
-                if (attrs.class) {
-                    result.cls(attrs.class);
-                    attrs.class = undefined;
-                }
-                for (let attr in attrs) {
-                    let val = attrs[attr];
-                    if (val != undefined)
-                        result.attr(attr, val);
-                }
-            }
-        }
+        var s = new S(document.createElementNS('http://www.w3.org/2000/svg', tag));
+        if (attrs)
+            if (g_1.isS(attrs) || Array.isArray(attrs))
+                s.cls(attrs);
+            else
+                s.attrs(attrs);
         if (child || child === 0)
-            result.add(child);
-        return result;
+            s.add(child);
+        return s;
     }
     g_1.svg = svg;
     function toSVG(text) {
