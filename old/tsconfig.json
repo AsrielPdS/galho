@@ -4,8 +4,9 @@
     "removeComments": true,
     "sourceMap": true,
     "lib": [ "ES2021.String", "DOM" ],
-    "declaration": false,
-    "module": "CommonJS",
+    "declaration": true,
+    "module": "ES2015",
+    "moduleResolution": "Node",
     "alwaysStrict": true,
     "noImplicitThis": true
   },

@@ -2,10 +2,10 @@
   "name": "galho",
   "version": "1.0.3",
   "description": "galho",
-  "browser": "galho.js",
   "main": "galho.js",
   "homepage": "https://github.com/AsrielPires/galho",
   "license": "MIT",
+  "sideEffects": false,
   "author": {
     "name": "Asriel Pires",
     "email": "bebether@gmail.com"
@@ -15,8 +15,11 @@
     "clean": "tsc --build --clean",
     "test": "node galho.test.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "handler": "file:../handler"
+  },
   "optionalDependencies": {
     "csstype": "*"
-  }
+  },
+  "devDependencies": {}
 }

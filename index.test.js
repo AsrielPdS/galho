@@ -1,4 +1,4 @@
-const { css } = require("./galho");
+const { css } = require("./index");
 
 const equal = (exp, value, msg) => exp === value ?
   console.log("TEST:%s sucefull", msg) :
