@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2017",
     "removeComments": true,
-    "sourceMap": true,
+    "inlineSourceMap": true,
     "lib": [ "ES2021.String", "DOM" ],
     "declaration": true,
     "module": "ES2015",
