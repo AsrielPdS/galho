@@ -178,6 +178,7 @@ export declare class M<T extends HSElement = HSElement> extends Array<T>{
   child(): M;
   child(filter?: string): M;
   child(index?: number): M;
+  do(cb: (v: S<T>, index: number) => any): this;
 }
 export declare function html<T extends keyof HTMLElementTagNameMap>(tag: T, props?: string | Partial<SVGElement>, child?: any): S;
 export declare function xml<T extends keyof HTMLElementTagNameMap>(tag: T, props?: string | Partial<SVGElement>, child?: any): S;

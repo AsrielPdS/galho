@@ -326,9 +326,9 @@ class S {
       }
       return new S();
     }
-    else if (typeof filter === 'number') 
+    else if (typeof filter === 'number')
       return new S(childs[filter < 0 ? childs.length + filter : filter]);
-    
+
   }
   first() {
     return new S(this.e.firstElementChild);
@@ -523,7 +523,11 @@ class M extends Array {
     }
     return result;
   }
-
+  do(cb) {
+    for (let i = 0; i < this.length; i++)
+      cb(new S(this[i]), i);
+      return this;
+  }
 }
 exports.M = M;
 exports.html = (tag, props, child) => {
