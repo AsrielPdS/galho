@@ -223,4 +223,7 @@ export declare type SVGEventMap<T> = {
   [K in keyof SVGElementEventMap]?: (this: T, e: SVGElementEventMap[K]) => any;
 };
 export declare function clearEvent(e: Event): void;
-export { };
+export type Lazy<T> = (() => T) | T
+
+export type Tr = S<HTMLTableRowElement>;
+export type Input = S<HTMLInputElement>;
