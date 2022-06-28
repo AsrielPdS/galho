@@ -498,35 +498,24 @@ class M extends Array {
       e.remove();
     return this;
   }
-  child(m, filter) {
-    let result;
-    if (isS(filter)) {
-      result = [];
-      for (let i = 0; i < m.length; i++) {
-        let childs = m[i].children;
-        for (let j = 0; j < childs.length; j++) {
-          let child = childs[j];
+  child(filter) {
+    let result = new M();
+    for (let item of this)
+      if (isS(filter))
+        for (let child of item.children) {
           if (child.matches(filter))
             result.push(child);
         }
-      }
-    }
-    else if (typeof filter == "number") {
-      result = Array(filter);
-      for (let i = 0; i < m.length; i++)
-        result[i] = m[i].children[filter];
-    }
-    else {
-      result = [];
-      for (let i = 0; i < m.length; i++)
-        result.push.apply(result, m[i].children);
-    }
+      else
+        typeof filter === "number" ?
+          (filter in i.children) && result.push(i.children[filter]) :
+          result.push.apply(result, item.children);
     return result;
   }
   do(cb) {
     for (let i = 0; i < this.length; i++)
       cb(new S(this[i]), i);
-      return this;
+    return this;
   }
 }
 exports.M = M;

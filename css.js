@@ -1,6 +1,6 @@
 const { g } = require("./galho");
 
-function css(selector, tag) {
+exports.css = (selector, tag) => {
   let r = "";
   for (let k in selector)
     r += parse(k, selector[k]);
@@ -42,4 +42,3 @@ const
     }
     return (r ? selector + "{" + r + "}" : "") + subSel;
   };
-module.exports = css;

@@ -3,35 +3,31 @@ import { S } from "./galho";
 interface Dic<T = any> {
   [key: string]: T;
 }
-declare function css(selector: Dic<css.Style>, tag?: S): S<HTMLStyleElement>;
-declare module css {
-  export type Properties = _p & {
-    webkitAppRegion?: "drag" | "no-drag";
-  };
-  interface Pseudo {
-    ":hover": Style;
-    ":active": Style;
-    ":focus": Style;
-    ":focus-within": Style;
-    ":autofill": Style;
-    ":checked": Style;
-    ":invalid": Style;
-    ":empty": Style;
-    ":root": Style;
-    ":enabled": Style;
-    ":disabled": Style;
-    ":link": Style;
-    ":visited": Style;
-    ":lang": Style;
-    ":first-child": Style;
-    ":last-child": Style;
-    ":only-child": Style;
-  }
-  export type Style = _p | Pseudo | Dic<Style>;
-  export type Styles = Dic<Style>;
-  export var defSub: string;
-  export function sub(parent: string[], child: string): string;
-  export function parse(selector: string, props: Style): string;
-
+export function css(selector: Dic<Style>, tag?: S): S<HTMLStyleElement>;
+export type Properties = _p & {
+  webkitAppRegion?: "drag" | "no-drag";
+};
+interface Pseudo {
+  ":hover": Style;
+  ":active": Style;
+  ":focus": Style;
+  ":focus-within": Style;
+  ":autofill": Style;
+  ":checked": Style;
+  ":invalid": Style;
+  ":empty": Style;
+  ":root": Style;
+  ":enabled": Style;
+  ":disabled": Style;
+  ":link": Style;
+  ":visited": Style;
+  ":lang": Style;
+  ":first-child": Style;
+  ":last-child": Style;
+  ":only-child": Style;
 }
-export = css;
+export type Style = _p | Pseudo | Dic<Style>;
+export type Styles = Dic<Style>;
+export var defSub: string;
+export function sub(parent: string[], child: string): string;
+export function parse(selector: string, props: Style): string;
