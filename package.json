@@ -1,6 +1,6 @@
 {
   "name": "galho",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "galho",
   "main": "galho.js",
   "homepage": "https://github.com/AsrielPires/galho",
@@ -14,9 +14,6 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "test": "node galho.test.js"
-  },
-  "dependencies": {
-    "handler": "file:../handler"
   },
   "optionalDependencies": {
     "csstype": "*"

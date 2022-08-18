@@ -1,4 +1,4 @@
-import { EventObject, Options, emit, off, on as h_on } from "handler";
+import { EventObject, Options, emit, off, on as h_on } from "./event.js";
 import type { Properties } from "./css.js";
 interface Dic<T = any> {
   [key: string]: T;
