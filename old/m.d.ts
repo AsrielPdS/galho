@@ -1,4 +1,4 @@
-import { HSElement, M, S } from "./galho";
+import { HSElement, M, S } from "../galho.js";
 
 export declare function query<T extends HSElement, K extends keyof HTMLElementTagNameMap>(m: M<T>, filter: K): S<HTMLElementTagNameMap[K]>;
 export declare function query<T extends HSElement, U extends HTMLElement | SVGElement = HTMLElement>(m: M<T>, filter: string): S<U>;

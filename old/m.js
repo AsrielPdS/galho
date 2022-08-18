@@ -1,5 +1,5 @@
-const { S } = require("./galho");
-const { isS, put } = require("./s");
+const { S } = require("../galho");
+const { isS, put } = require("../s");
 
 exports.query = (m, filter) => {
   for (let i = 0, l = m.length; i < l; i++) {
