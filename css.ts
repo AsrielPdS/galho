@@ -1,8 +1,7 @@
 import { Properties as _p } from "csstype";
 import { S, g } from "./galho.js";
-interface Dic<T = any> {
-  [key: string]: T;
-}
+import { Dic, isO } from "./util.js";
+
 export function css(selector: Dic<Style>, tag?: S) {
   let r = "";
   for (let k in selector)
@@ -37,7 +36,7 @@ const
   subs = [">", " ", ":", "~", "+"],
   defSub = ">",
   regex = /[A-Z]/g;
-export function sub(parent: string[], child: string){
+export function sub(parent: string[], child: string) {
   return child.split(',').map(s => {
     let t = s[0];
     return parent.map(p => {
@@ -50,8 +49,8 @@ export function sub(parent: string[], child: string){
     }).join(',');
   }).join(',');
 }
-export function parse(selector: string, props: Style){
-  let r = "", subSel = "", split:string[];
+export function parse(selector: string, props: Style) {
+  let r = "", subSel = "", split: string[];
   if (selector[0] == '@') {
     for (let k in props)
       r += parse(k, props[k]);
@@ -60,7 +59,7 @@ export function parse(selector: string, props: Style){
   for (let key in props) {
     let val = props[key];
     if (val || val === 0) {
-      if (typeof val === "object") {
+      if (isO(val)) {
         subSel += parse(sub(split || (split = selector.split(',')), key), val);
       }
       else
@@ -69,3 +68,6 @@ export function parse(selector: string, props: Style){
   }
   return (r ? selector + "{" + r + "}" : "") + subSel;
 }
+type float = number;
+export const rgba = (r: float, g: float, b: float, a: float) => `rgba(${r},${g},${b},${a})`;
+export const rgb = (r: float, g: float, b: float) => `rgb(${r},${g},${b})`;

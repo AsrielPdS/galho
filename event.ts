@@ -1,33 +1,29 @@
+import { assign, bool, Dic, float, Obj, str } from "./util.js";
+
 /**event arg */
 export interface Arg<T = any> {
   v: T;
   /**prevented */
-  p?: boolean
+  p?: bool
 }
-export interface Options<DT = any> {
-  delay?: number,
-  once?: boolean,
-  passive?: boolean;
-  check?: (data: DT) => boolean;
+export interface Options<A extends any[] = any[]> {
+  delay?: float,
+  once?: bool,
+  passive?: bool;
+  check?: (...args: A) => bool;
 }
-export type EventTargetCallback<T = any, DT = any> = ((this: T, e: DT) => any) & Options<DT>;
-export interface EventObject<T extends object = any> {
+export type EventTargetCallback<T, A extends any[] = any[]> = ((this: T, ...args: A) => any) & Options<A>;
+export interface EventObject<T extends Dic<any[]> = any> {
   /**events handlers*/
-  eh: { [P in keyof T]?: EventTargetCallback<this, T[P]>[] };
-  /**when true this List do not raise events */
-  slip?: boolean;
+  eh: { [K in keyof T]?: EventTargetCallback<this, T[K]>[] };
+  /**when true this object do not raise events */
+  slip?: bool;
 }
-export function on<E extends EventObject>(e: E, event: string, callback: EventTargetCallback<E>, options?: Options): E {
-  if (callback) {
-    options && Object.assign(callback, options);
-    if (!(event in e.eh))
-      e.eh[event] = [];
-
-    e.eh[event].push(callback);
-  }
+export function on<E extends EventObject>(e: E, event: str, callback: EventTargetCallback<E>, options?: Options): E {
+  callback && (e.eh[event] ||= []).push(options ? assign(callback, options) : callback);
   return e;
 }
-export function off<E extends EventObject>(e: E, event: string, callback?: EventTargetCallback<E>) {
+export function off<E extends EventObject>(e: E, event: str, callback?: EventTargetCallback<E>) {
   if (event in e.eh)
     if (callback) {
       let stack = e.eh[event];
@@ -40,18 +36,34 @@ export function off<E extends EventObject>(e: E, event: string, callback?: Event
     } else delete e.eh[event];
   return e
 }
-export function emit<E extends EventObject>(e: E, event: string, data?) {
+
+export function emit<T extends EventObject, K extends keyof T["eh"]>(e: T, event: K, ...args: any[]) {
   if (!e.slip) {
     let stack = e.eh[event];
     if (stack)
       for (let i = 0, l = stack.length; i < l; i++) {
-        let handler = stack[i];
-        if (handler.once)
-          stack.splice(i--, 1);
-        if (handler.delay)
-          setTimeout(() => { handler.call(e, data); }, handler.delay);
-        else if (handler.call(e, data) === false)
-          break;
+        let h = stack[i];
+        if (!h.check || h.check.apply(e, args)) {
+          if (h.once)
+            stack.splice(i--, 1);
+          if (h.delay)
+            setTimeout(() => h.apply(e, args), h.delay);
+          else if (h.apply(e, args) === false)
+            break;
+        }
       }
   }
+  return e;
+}
+export async function emitAsync(stack: EventTargetCallback<any>[], args: any[], me?: any) {
+  if (stack)
+    for (let i = 0, l = stack.length; i < l; i++) {
+      let h = stack[i];
+      if (h.once)
+        stack.splice(i--, 1);
+      if (h.delay)
+        await new Promise(r => setTimeout(r, h.delay));
+      if ((await h.apply(me, args)) === false)
+        break;
+    }
 }
