@@ -1,7 +1,10 @@
 import { EventObject, Options, emit, off, on, EventTargetCallback } from "./event.js";
-import type { Properties } from "./css.js";
-import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool } from "./util.js";
+import type { Properties as _p } from "csstype";
+import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float } from "./util.js";
 
+export type Properties = _p & {
+  webkitAppRegion?: "drag" | "no-drag";
+};
 // export function on<T extends S>(e: T, actions: HTMLEventMap<T>, options?: AddEventListenerOptions): T;
 // export function on<T extends S>(e: T, actions: SVGEventMap<T>, options?: AddEventListenerOptions): T;
 // export function on<T extends S, K extends keyof HTMLElementEventMap>(e: T, action: K, listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): T;
@@ -505,8 +508,11 @@ export class S<T extends HSElement = HTMLElement> {
   }
   /**@deprecated */
   prop<K extends keyof T>(key: K): T[K];
+  /**@deprecated */
   prop<T = any>(key: string): T;
+  /**@deprecated */
   prop<K extends keyof T>(key: K, value: T[K]): this;
+  /**@deprecated */
   prop(key: string, value: any): this;
   prop(props, value?) {
     if (arguments.length == 1) {
@@ -663,9 +669,9 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
     }
     return this;
   }
-  prop<K extends keyof T>(prop: K, value: T[K]): this
-  prop(prop: string, value: any): this
-  prop(prop: string, value: any) {
+  p<K extends keyof T>(prop: K, value: T[K]): this
+  p(prop: string, value: any): this
+  p(prop: string, value: any) {
     for (let i = 0; i < this.length; i++)
       this[i][prop] = value;
     return this;
@@ -807,3 +813,74 @@ export type Lazy<T> = (() => T) | T
 
 export type Tr = S<HTMLTableRowElement>;
 export type Input = S<HTMLInputElement>;
+
+//#region css
+
+export function css(selector: Dic<Style>, tag?: S) {
+  let r = "";
+  for (let k in selector)
+    r += parse(k, selector[k]);
+  return tag ? tag.add(r) : g("style").text(r).addTo(document.head) as S<HTMLStyleElement>;
+}
+interface Pseudo {
+  ":hover": Style;
+  ":active": Style;
+  ":focus": Style;
+  ":focus-within": Style;
+  ":autofill": Style;
+  ":checked": Style;
+  ":invalid": Style;
+  ":empty": Style;
+  ":root": Style;
+  ":enabled": Style;
+  ":disabled": Style;
+  ":link": Style;
+  ":visited": Style;
+  ":lang": Style;
+  ":first-child": Style;
+  ":last-child": Style;
+  ":only-child": Style;
+}
+export type Style = _p | Pseudo | Dic<Style>;
+export type Styles = Dic<Style>;
+const
+  subs = [">", " ", ":", "~", "+"],
+  defSub = ">",
+  regex = /[A-Z]/g;
+export function sub(parent: string[], child: string) {
+  return child.split(',').map(s => {
+    let t = s[0];
+    return parent.map(p => {
+      if (t == "&")
+        return p + s.slice(1);
+      else if (subs.indexOf(t) == -1)
+        return p + defSub + s;
+      else
+        return p + s;
+    }).join(',');
+  }).join(',');
+}
+export function parse(selector: string, props: Style) {
+  let r = "", subSel = "", split: string[];
+  if (selector[0] == '@') {
+    for (let k in props)
+      r += parse(k, props[k]);
+    return r ? selector + "{" + r + "}" : '';
+  }
+  for (let key in props) {
+    let val = props[key];
+    if (val || val === 0) {
+      if (isO(val)) {
+        subSel += parse(sub(split || (split = selector.split(',')), key), val);
+      }
+      else
+        r += key.replace(regex, m => "-" + m) + ":" + val + ";";
+    }
+  }
+  return (r ? selector + "{" + r + "}" : "") + subSel;
+}
+//#endregion
+//#region util
+export const rgba = (r: float, g: float, b: float, a: float) => `rgba(${r},${g},${b},${a})`;
+export const rgb = (r: float, g: float, b: float) => `rgb(${r},${g},${b})`;
+//#endregion

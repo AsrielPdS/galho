@@ -32,12 +32,12 @@ export const isN = (value: unk): value is number => typeof value === "number";
 /** is boolean */
 export const isB = (value: unk): value is boolean => typeof value === "boolean";
 /** is undefined */
-export const isU = (value: unk): value is undefined => typeof value === "undefined";
+export const isU = (value: unk): value is undefined => value === undefined;
 /** is promise like */
 export const isP = (value: any): value is PromiseLike<any> => value && isF(value.then);
 /** is array */
 export const isA = <T = any>(value: any): value is T[] => Array.isArray(value);
-
+export const wait = (ms?: int) => new Promise(r => setTimeout(r, ms));
 export const assign: { <T>(t: T, ...s: Partial<T>[]): T } & typeof Object.assign = Object.assign;
 export function extend<T extends object, U = Partial<T>>(obj: T, extension: U, override = true) {
   for (let key in extension) {
@@ -89,5 +89,48 @@ export function byKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: 
       return arr[i];
   return null;
 }
-export const create = <T extends Object>(constructor: new () => T, obj: Partial<T>): T => assign(new constructor(), obj);
-export const json = JSON.stringify;
+export const
+  create = <T extends Object>(constructor: new () => T, obj: Partial<T>): T => assign(new constructor(), obj),
+  json = JSON.stringify,
+  date = (d: Date): [y: int, M: int, d: int, h: int, m: int, s: int] =>
+    [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()];
+
+const
+  _fmtc = new Intl.NumberFormat("pt", { style: "currency", currency: "AOA" }),
+  _fmtp = new Intl.NumberFormat("pt", { style: "percent" }),
+  _fmtd = new Intl.DateTimeFormat("pt", { dateStyle: "short" }),
+  _fmtt = new Intl.DateTimeFormat("pt", { timeStyle: "short" }),
+  _fmtn = new Intl.NumberFormat(),
+  _fmtDT = new Intl.DateTimeFormat("pt", { dateStyle: "short", timeStyle: "short" });
+export const
+  /**format date*/
+  fmtd = (v: number | Date) => _fmtd.format(v),
+  /**format time */
+  fmtt = (v: number | Date) => _fmtt.format(v),
+  /**format date & time */
+  fmtDT = (v: number | Date) => _fmtDT.format(v),
+  /**format currency */
+  fmtc = (v: str | number | bigint) => _fmtc.format(<number>v),
+  /**format percent(%) */
+  fmtp = (v: str | number | bigint) => _fmtp.format(<number>v),
+  /**format number */
+  fmtn = (v: str | number | bigint) => _fmtn.format(<number>v),
+  fmts: Dic<any/*(value:any) => string */> = {
+    d: fmtd, t: fmtt, D: fmtDT,
+    c: fmtc, f: fmtn, p: fmtp,
+    n: fmtn,
+  };
+export type Fmts =
+    /**time          */"t" |
+    /**date          */"d" |
+    /**date & time   */"D" |
+    /**currency      */"$" |
+    /**percent       */"%" |
+    /**decimal(numb) */"n" |
+    /**integer       */"i";
+export function fmt(v: Date | number | string, pattern?: Fmts): str
+export function fmt(v: Date | number | string, pattern?: str): str
+export function fmt(v: Date | number | string, pattern?: Fmts) {
+  isS(v) && (v = new Date());
+  return fmts[pattern ||= isN(v) ? "n" : v.getHours() || v.getMinutes() ? "D" : "d"](v);
+}
