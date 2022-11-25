@@ -334,9 +334,9 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
         case 'tag':
           if (bond.tag) {
             if (opts.oldI != null)
-              bond.tag.call(this, s.child(opts.oldI), false, opts.tag, this[opts.oldI], opts.oldI, s);
+              bond.tag.call(this, false, opts.oldI, s, opts.tag, this[opts.oldI]);
             if (opts.newI != null)
-              bond.tag.call(this, s.child(opts.newI), true, opts.tag, this[opts.newI], opts.newI, s);
+              bond.tag.call(this, true, opts.newI, s, opts.tag, this[opts.newI]);
           }
           break;
         case 'set':
@@ -499,7 +499,7 @@ export interface LBond<T = any, A = T, TS extends S = S> {
    * */
   groups?: Dic<GroupBind<T, TS>> | GroupBind<T, TS>;
   /** */
-  tag?: (this: L<T, A>, s: TS, active: bool, tag: str, value: T, index: number, parent: TS) => void;
+  tag?: (this: L<T, A>, active: bool, index: number, parent: TS, tag: str, value: T) => void;
 }
 export function extend<T = any, A = T>(l?: Alias<T, A>, opts?: IList<T, A>) {
   if (!l || !(l as L).eh)
@@ -588,6 +588,9 @@ export class Group<T> extends Array<T> implements EventObject<GroupEvents<T>> {
     gpush(this, items);
     return this.length;
   }
+  toggle(item: T) {
+    this.includes(item) ? this.remove(item) : gpush(this, [item]);
+  }
   pushRange(start: int, end: int) {
     return gpush(this, this.l.slice(start, end));
   }
@@ -670,19 +673,19 @@ export class Group<T> extends Array<T> implements EventObject<GroupEvents<T>> {
   }
   static get [Symbol.species]() { return Array; }
 }
-export type GroupBind<T, TS extends S> = (this: L<T>, element: TS, value: boolean, item: T, groupKey: string, index: number, parent: TS) => void;
+export type GroupBind<T, TS extends S> = (this: L<T>, state: boolean, index: number, parent: TS, groupKey: string, item: T) => void;
 export function bind<T, TS extends S = S, A = T>(l: L<T, A>, s: TS, groupKey: string, bond: GroupBind<T, TS>): TS {
   let g = l.g[groupKey];
   if (g) {
     let call = (items: T[], indexes: int[], state: bool) => {
       for (let i = 0; i < items.length; i++) {
-        let id = indexes[i];
-        bond.call(l, s.child(id), state, items[i], groupKey, id, s);
+        let index = indexes[i];
+        bond.call(l, state, index, s, groupKey, items[i]);
       }
     };
     g.on((add, addId, rmv, rmvId) => {
-      rmv && call(rmv, rmvId, !1);
-      add && call(add, addId, !0);
+      rmv && call(rmv, rmvId, false);
+      add && call(add, addId, true);
     });
   }
   else
@@ -692,7 +695,6 @@ export function bind<T, TS extends S = S, A = T>(l: L<T, A>, s: TS, groupKey: st
 //#endregion
 
 export namespace range {
-
   export const enum Tp {
     set = 0,
     add = 1,
@@ -754,11 +756,10 @@ export namespace range {
   }
   /** remove focus */
   export function clear<T, A = T>(l: L<T, A>, tag: str) {
-    l.tag(tag);
+    l.tag(tag, null);
     l.g[tag] && l.g[tag].clear();
     return l;
   }
-
   export function onchange<T, A = T>(l: L<T, A>, tag: str, listener?: (this: L<T, A>, active: T, selected?: Group<T>) => void) {
     let g = l.g[tag];
     g ? g.on(() => {

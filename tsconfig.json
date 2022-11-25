@@ -7,7 +7,7 @@
       "DOM",
       "ES2020"
     ],
-    "module": "CommonJS",
+    // "module": "CommonJS",
     "alwaysStrict": true,
     "noImplicitThis": true,
     "moduleResolution": "Node"

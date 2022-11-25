@@ -1,6 +1,6 @@
 import { EventObject, Options, emit, off, on, EventTargetCallback } from "./event.js";
 import type { Properties as _p } from "csstype";
-import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float } from "./util.js";
+import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float, int } from "./util.js";
 
 export type Properties = _p & {
   webkitAppRegion?: "drag" | "no-drag";
@@ -50,8 +50,9 @@ export default function create(e: Create, arg0, arg1) {
   return r;
 }
 export const g = create;
-export const div = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) =>
-  g("div", props, child);
+export const
+  div = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) => g("div", props, child),
+  span = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) => g("span", props, child);
 export const active = () => g(document.activeElement);
 type EEv<Ev, I> = Ev & {
   set: Partial<I>;
@@ -298,9 +299,19 @@ export class S<T extends HSElement = HTMLElement> {
     }
     return this;
   }
+  /**insert adjacent after end */
+  after(child: any) {
+    return this.put('afterend', child);
+  }
+  /**@deprecated */
   putAfter(child: any) {
     return this.put('afterend', child);
   }
+  /**insert adjacent before begin */
+  before(child: any) {
+    return this.put('beforebegin', child);
+  }
+  /**@deprecated */
   putBefore(child: any) {
     return this.put('beforebegin', child);
   }
@@ -626,8 +637,12 @@ export const isE = (v: any): v is S<any> => v.e && v.e?.nodeType === 1;
 export const asE = <T extends HSElement>(v: T | S<T>) => (v as S).e ? (v as S).e : v as T;
 const isD = (v: any): v is HSElement => v.nodeType === 1;
 export class M<T extends HSElement = HSElement> extends Array<T>{
+  constructor(...elements: (S<T> | T)[])
+  constructor(lenght: int)
   constructor(...elements: (S<T> | T)[]) {
-    super(...elements.map(i => "e" in i ? i.e : i as T));
+    if (isN(elements[0]))
+      super(elements[0]);
+    else super(...elements.map(i => "e" in i ? i.e : i as T));
   }
   e(i: number) { return new S(this[i]); }
   on<K extends keyof HTMLElementEventMap>(action: K, listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): M<T>;
@@ -708,6 +723,9 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
     this.forEach((value, index) => callbackfn(new S(value), index));
     return this;
   }
+}
+export interface M<T extends HSElement = HSElement> {
+  slice: (start?: number, end?: number) => M<T>;
 }
 /**html empty char */
 export const empty = '&#8203;';
@@ -816,12 +834,7 @@ export type Input = S<HTMLInputElement>;
 
 //#region css
 
-export function css(selector: Dic<Style>, tag?: S) {
-  let r = "";
-  for (let k in selector)
-    r += parse(k, selector[k]);
-  return tag ? tag.add(r) : g("style").text(r).addTo(document.head) as S<HTMLStyleElement>;
-}
+//tag ? tag.add(r) : g("style").text(r).addTo(document.head) as S<HTMLStyleElement>;
 interface Pseudo {
   ":hover": Style;
   ":active": Style;
@@ -846,38 +859,36 @@ export type Styles = Dic<Style>;
 const
   subs = [">", " ", ":", "~", "+"],
   defSub = ">",
-  regex = /[A-Z]/g;
-export function sub(parent: string[], child: string) {
-  return child.split(',').map(s => {
-    let t = s[0];
-    return parent.map(p => {
-      if (t == "&")
+  regex = /[A-Z]/g,
+  sub = (parent: string[], child: string) => child.split(',')
+    .map(s => parent.map(p => {
+      if (s[0] == "&")
         return p + s.slice(1);
-      else if (subs.indexOf(t) == -1)
+      else if (subs.indexOf(s[0]) == -1)
         return p + defSub + s;
       else
         return p + s;
-    }).join(',');
-  }).join(',');
-}
-export function parse(selector: string, props: Style) {
+    }).join(',')).join(',');
+
+export function css(props: Style, selector?: string): str;
+export function css(props: Style, s?: string) {
   let r = "", subSel = "", split: string[];
-  if (selector[0] == '@') {
+  if (!s || s[0] == '@') {
     for (let k in props)
-      r += parse(k, props[k]);
-    return r ? selector + "{" + r + "}" : '';
+      r += css(props[k], k);
+    return r ? s ? s + "{" + r + "}" : r : '';
   }
   for (let key in props) {
     let val = props[key];
     if (val || val === 0) {
       if (isO(val)) {
-        subSel += parse(sub(split || (split = selector.split(',')), key), val);
+        subSel += css(val, sub(split || (split = s.split(',')), key));
       }
       else
         r += key.replace(regex, m => "-" + m) + ":" + val + ";";
     }
   }
-  return (r ? selector + "{" + r + "}" : "") + subSel;
+  return (r ? s + "{" + r + "}" : "") + subSel;
 }
 //#endregion
 //#region util

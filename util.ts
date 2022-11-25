@@ -100,6 +100,7 @@ const
   _fmtp = new Intl.NumberFormat("pt", { style: "percent" }),
   _fmtd = new Intl.DateTimeFormat("pt", { dateStyle: "short" }),
   _fmtt = new Intl.DateTimeFormat("pt", { timeStyle: "short" }),
+  _fmtm = new Intl.DateTimeFormat("pt", { year:"numeric",month:"long" }),
   _fmtn = new Intl.NumberFormat(),
   _fmtDT = new Intl.DateTimeFormat("pt", { dateStyle: "short", timeStyle: "short" });
 export const
@@ -107,6 +108,8 @@ export const
   fmtd = (v: number | Date) => _fmtd.format(v),
   /**format time */
   fmtt = (v: number | Date) => _fmtt.format(v),
+  /**format month */
+  fmtm = (v: number | Date) => _fmtm.format(v),
   /**format date & time */
   fmtDT = (v: number | Date) => _fmtDT.format(v),
   /**format currency */
