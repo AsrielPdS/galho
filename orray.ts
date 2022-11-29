@@ -461,7 +461,7 @@ export function editItems<T, A = T>(l: L<T, A>, ...items: T[]): L<T, A> {
   return l;
 }
 
-type LBondInsert<T, A, TS extends S> = (this: L<T, A>, value: T, index?: number, container?: TS) => any;
+export type LBondInsert<T, A = T, TS extends S = S> = (this: L<T, A>, value: T, index?: number, container?: TS) => any;
 
 export interface LBond<T = any, A = T, TS extends S = S> {
   /**
