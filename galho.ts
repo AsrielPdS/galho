@@ -1,6 +1,6 @@
 import { EventObject, Options, emit, off, on, EventTargetCallback } from "./event.js";
 import type { Properties as _p } from "csstype";
-import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float, int } from "./util.js";
+import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float, int,def } from "./util.js";
 
 export type Properties = _p & {
   webkitAppRegion?: "drag" | "no-drag";
@@ -58,6 +58,7 @@ type EEv<Ev, I> = Ev & {
   set: Partial<I>;
 };
 export abstract class E<I = {}, Events extends Dic<any[]> = {}> implements Render, EventObject<Events & { set: [I] }> {
+  /**interface */
   i: I;
   $: S;
   private bonds: { prop, handler: BindHandler<E, I, S | Render>, e: S | Render }[];
@@ -352,7 +353,7 @@ export class S<T extends HSElement = HTMLElement> {
   badd(child: any) { return this.put('afterbegin', child); }
   /**@deprecated */
   prepend(child: any) { return this.badd(child); }
-  place(index: number, child: any) {
+  place(index: int, child: any) {
     if (!index)
       return this.badd(child);
     var c = this.e.children, temp = c[index < 0 ? c.length + index : index - 1];
@@ -361,7 +362,7 @@ export class S<T extends HSElement = HTMLElement> {
     new S(temp).put('afterend', child);
     return this;
   }
-  unplace(index: number) {
+  unplace(index: int) {
     this.e.children[index].remove();
   }
   addHTML(html: string) {
@@ -622,10 +623,11 @@ export class S<T extends HSElement = HTMLElement> {
   }
   d(data: any): this;
   d<T = unknown>(): T;
-  d(data?) {
+  d(data?: any) {
+    let e = this.e as HTMLElement&{_d?};
     if (isU(data))
-      return this.e['_d'];
-    this.e['_d'] = data;
+      return def(e._d, (e = e.parentElement) && new S(e).d());
+    e._d = data;
     return this;
   }
   remove() {

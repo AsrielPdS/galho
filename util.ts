@@ -69,7 +69,7 @@ export const z = <T>(a: ArrayLike<T>) => a[l(a) - 1];
 export const filter: {
   <T>(arr: Array<T>, filter: (v: T, i: number) => boolean): T[];
   /**filter all true values */
-  <T>(arr: Array<T>): T[];
+  <T>(arr: Array<T>): Exclude<T, falses>[];
 } = <T>(arr: Array<T>, filter?: (v: T, i: number) => boolean) =>
     arr.filter(filter || (v => v));
 
@@ -96,13 +96,13 @@ export const
     [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()];
 
 const
-  _fmtc = new Intl.NumberFormat("pt", { style: "currency", currency: "AOA" }),
-  _fmtp = new Intl.NumberFormat("pt", { style: "percent" }),
-  _fmtd = new Intl.DateTimeFormat("pt", { dateStyle: "short" }),
-  _fmtt = new Intl.DateTimeFormat("pt", { timeStyle: "short" }),
-  _fmtm = new Intl.DateTimeFormat("pt", { year:"numeric",month:"long" }),
+  _fmtc = new Intl.NumberFormat(void 0, { style: "currency", currency: "AOA" }),
+  _fmtp = new Intl.NumberFormat(void 0, { style: "percent" }),
+  _fmtd = new Intl.DateTimeFormat(void 0, { dateStyle: "short" }),
+  _fmtt = new Intl.DateTimeFormat(void 0, { timeStyle: "short" }),
+  _fmtm = new Intl.DateTimeFormat(void 0, { year: "numeric", month: "long" }),
   _fmtn = new Intl.NumberFormat(),
-  _fmtDT = new Intl.DateTimeFormat("pt", { dateStyle: "short", timeStyle: "short" });
+  _fmtDT = new Intl.DateTimeFormat(void 0, { dateStyle: "short", timeStyle: "short" });
 export const
   /**format date*/
   fmtd = (v: number | Date) => _fmtd.format(v),
@@ -137,3 +137,4 @@ export function fmt(v: Date | number | string, pattern?: Fmts) {
   isS(v) && (v = new Date());
   return fmts[pattern ||= isN(v) ? "n" : v.getHours() || v.getMinutes() ? "D" : "d"](v);
 }
+export const concat = (separator:str,...parts: any[]) => parts.filter(p => p != null).join(separator);

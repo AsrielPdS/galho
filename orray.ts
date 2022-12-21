@@ -179,12 +179,25 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     emit(this, 'update', { tp: 'set', items: this, removed });
     return this;
   }
-  has(id: Key) {
-    for (let i = 0; i < this.length; i++) {
-      if (this[i][this.key] === id)
+  has(id: Key, fromIndex = 0) {
+    for (; fromIndex < this.length; fromIndex++) {
+      if (this[fromIndex][this.key] === id)
         return true;
     }
     return false;
+  }
+  includes(searchElement: Key, fromIndex?: number): boolean 
+  includes(searchElement: T, fromIndex?: number): boolean 
+  includes(searchElement: T | Key, fromIndex?: number): boolean {
+    let k = this.key;
+    if (k) {
+      for (fromIndex=0; fromIndex < this.length; fromIndex++) {
+        let j = this[fromIndex];
+        if (j === searchElement || j[k] === searchElement)
+          return true;
+      }
+      return false;
+    } else return super.includes(searchElement as T, fromIndex)
   }
   addGroup(key: str): Group<T> {
     // t.key = key;
@@ -402,11 +415,8 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
 export type Alias<T = any, A = T> = Array<T | A> | L<T, A>;
 
 
-export function copy<S, D, A = S>(src: L<S, A>, dest: L<D>, parse?: (value: S, index: number) => D) {
-  // if (isF(a))
-  //   a = orray(src.map(b = a));
-  // else
-  //   a.set(src.map(b));
+export function copy<S, D, A = S>(src: L<S, A>, dest: L<D>, fill = true, parse: (value: S, index: number) => D = v => v as any) {
+  if (fill) dest.set(src.map(parse));
   return src.onupdate(e => {
     switch (e.tp) {
       case 'push':
@@ -525,6 +535,7 @@ export function extend<T = any, A = T>(l?: Alias<T, A>, opts?: IList<T, A>) {
 export default function _<T = any, A = T>(options: IList<T, A>): L<T, A>;
 export default function _<T = any, A = T>(array?: L<T, A>, options?: Parse<T, A>): L<T, A>;
 export default function _<T = any, A = T>(array?: Array<T | A>, options?: IList<T, A>): L<T, A>;
+export default function _<T = any, A = T>(array?: Alias<T, A>, options?: IList<T, A>): L<T, A>;
 export default function _<T = any, A = T>(array?: Array<T | A> | IList<T, A> | L<T, A>, opts?: IList<T, A> | Parse<T, A>) {
   if (array && !('length' in array)) {
     opts = array;
