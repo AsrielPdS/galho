@@ -20,6 +20,7 @@ export type falses = false | 0 | "" | undefined | null;
 export type Pair<V = any, K = str> = [key: K, val: V];
 export type Arr<T> = T[] | T;
 export type Task<T> = T | Promise<T>;
+export const is = <T extends Object>(value: unk, type: { new(...args:any): T }): value is T => value instanceof type;
 /**is string */
 export const isS = (value: unk): value is str => typeof value === 'string';
 /**is function */
@@ -137,4 +138,4 @@ export function fmt(v: Date | number | string, pattern?: Fmts) {
   isS(v) && (v = new Date());
   return fmts[pattern ||= isN(v) ? "n" : v.getHours() || v.getMinutes() ? "D" : "d"](v);
 }
-export const concat = (separator:str,...parts: any[]) => parts.filter(p => p != null).join(separator);
+export const concat = (separator: str, ...parts: any[]) => parts.filter(p => p != null).join(separator);

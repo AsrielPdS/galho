@@ -1,6 +1,6 @@
 import { EventObject, Options, emit, off, on, EventTargetCallback } from "./event.js";
 import type { Properties as _p } from "csstype";
-import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float, int,def } from "./util.js";
+import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float, int, def } from "./util.js";
 
 export type Properties = _p & {
   webkitAppRegion?: "drag" | "no-drag";
@@ -474,9 +474,7 @@ export class S<T extends HSElement = HTMLElement> {
   queryAll(filter: string) {
     return new M(...Array.from(this.e.querySelectorAll(filter)) as HTMLElement[]);
   }
-  parent() {
-    return g(this.e.parentElement);
-  }
+  parent() { return new S(this.e.parentElement); }
   closest<K extends keyof HTMLElementTagNameMap>(filter: K): S<HTMLElementTagNameMap[K]>;
   closest(filter: string): S
   closest(filter: string) {
@@ -578,22 +576,21 @@ export class S<T extends HSElement = HTMLElement> {
   c(classes: Arr<str>): this;
   /**add or remove classes */
   c(classes: Arr<str>, set: bool): this;
-  c(names, set?) {
-    this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, isS(names) ? names.trim().split(' ').filter(n => n) : names);
+  c(names: Arr<str>, set?: bool) {
+    this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, (isS(names) ? names.trim().split(' ') : names).filter(n => n));
     return this;
   }
   /**@deprecated */
-  cls(classes: string | string[]): this;
-  cls(names: string | string[], set: boolean): this;
-  cls(names, set?) {
-    this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, isS(names) ? names.trim().split(' ').filter(n => n) : names);
+  cls(classes: Arr<str>): this;
+  cls(names: Arr<str>, set: boolean): this;
+  cls(names: Arr<str>, set?) {
+    this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, (isS(names) ? names.trim().split(' ') : names).filter(n => n));
     return this;
   }
   /**toggle class */
   tcls(names: string) {
     for (let n of names.split(' '))
-      if (n)
-        this.e.classList.toggle(n.replace(' ', ''));
+      if (n) this.e.classList.toggle(n);
     return this;
   }
   hasClass(name: string) {
@@ -624,7 +621,7 @@ export class S<T extends HSElement = HTMLElement> {
   d(data: any): this;
   d<T = unknown>(): T;
   d(data?: any) {
-    let e = this.e as HTMLElement&{_d?};
+    let e = this.e as HTMLElement & { _d?};
     if (isU(data))
       return def(e._d, (e = e.parentElement) && new S(e).d());
     e._d = data;
@@ -784,12 +781,8 @@ class CL extends Array<string> {
     }
     return this.length;
   }
-  tryAdd(cls: string) {
-    if (!this.includes(cls))
-      this.push(cls);
-    return this;
-  }
 }
+/**@deprecated */
 export function cl(...cls: Array<string | string[]>) {
   let c = new CL;
   if (cls.length)
