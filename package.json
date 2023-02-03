@@ -6,16 +6,19 @@
   "homepage": "https://github.com/AsrielPires/galho",
   "license": "MIT",
   "sideEffects": false,
+  "keywords": [
+    "galho",
+    "dom",
+    "svg",
+    "collections",
+    "event",
+    "util"
+  ],
   "author": {
     "name": "Asriel Pires",
     "email": "bebether@gmail.com"
   },
-  "type":"module",
-  "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
-    "test": "node galho.test.js"
-  },
+  "type": "module",
   "optionalDependencies": {
     "csstype": "*"
   }

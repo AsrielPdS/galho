@@ -2,34 +2,16 @@ import { EventObject, Options, emit, off, on, EventTargetCallback } from "./even
 import type { Properties as _p } from "csstype";
 import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float, int, def } from "./util.js";
 
-export type Properties = _p & {
-  webkitAppRegion?: "drag" | "no-drag";
-};
-// export function on<T extends S>(e: T, actions: HTMLEventMap<T>, options?: AddEventListenerOptions): T;
-// export function on<T extends S>(e: T, actions: SVGEventMap<T>, options?: AddEventListenerOptions): T;
-// export function on<T extends S, K extends keyof HTMLElementEventMap>(e: T, action: K, listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): T;
-// export function on<T extends S, K extends keyof SVGElementEventMap>(e: T, action: K, listener: (this: T, e: SVGElementEventMap[K]) => any, options?: AddEventListenerOptions): T;
-// export function on<T extends Element = Element, E extends Event = Event>(e: T, action: string, fn: EventHandler<T, E>, options?: AddEventListenerOptions): T;
-// export function on<T extends S, K extends keyof HTMLElementEventMap>(e: T, action: K[], listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): T;
-// export function on(e, event, listener, options?) {
-
-// }
-
-export function delay<T extends ANYElement, K extends keyof HTMLElementEventMap>(e: S<T>, action: K, delay: number, listener: (this: T, e: HTMLElementEventMap[K]) => any): S<T>;
-export function delay<T extends ANYElement, K extends keyof SVGElementEventMap>(e: S<T>, action: K, delay: number, listener: (this: T, e: SVGElementEventMap[K]) => any): S<T>;
-export function delay(e: S, event: string, time: number, handler: (e: Event) => any) {
-  handler = handler.bind(e.e);
-  return e.on(event, function (e) {
-    var t = `_${event}_timer`;
-    clearTimeout(this[t]);
-    this[t] = setTimeout(handler, time, e);
-  });
-}
+/**
+ * create new element set props and append child
+ * @param element tag name of element to create
+ * @param props if is string or string array will the class if not will be set as props of created element 
+ * @param childs elements, string, number or anything that can be append to an element
+ */
 export default function create<K extends keyof HTMLElementTagNameMap>(element: K, props?: Partial<HTMLElementTagNameMap[K]> | string | string[] | 0, childs?: any): S<HTMLElementTagNameMap[K]>;
 export default function create<T extends HTMLElement = HTMLElement>(element: Create, props?: Partial<T> | string | string[] | 0, childs?: any): S<T>
 export default function create(e: Create, arg0, arg1) {
-  if (!e)
-    return null;
+  if (!e)  return null;
   let r = isS(e) ?
     new S(document.createElement(e)) :
     isD(e) ?
@@ -50,166 +32,187 @@ export default function create(e: Create, arg0, arg1) {
   return r;
 }
 export const g = create;
-export const
-  div = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) => g("div", props, child),
-  span = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) => g("span", props, child);
-export const active = () => g(document.activeElement);
-type EEv<Ev, I> = Ev & {
-  set: Partial<I>;
-};
-export abstract class E<I = {}, Events extends Dic<any[]> = {}> implements Render, EventObject<Events & { set: [I] }> {
-  /**interface */
-  i: I;
-  $: S;
-  private bonds: { prop, handler: BindHandler<E, I, S | Render>, e: S | Render }[];
-  validators: Dic<Array<(value: any, field: any) => boolean | void>>;
-  constructor(i?: I) {
-    this.bonds = [];
-    this.eh = {};
-    this.i = i || {} as I;
-  }
-  protected view?(): One<HSElement>;
-  focus() {
-    this.$.focus();
-    return this;
-  }
-  render() {
-    if (this.$ === void 0) {
-      let view = this.view();
-      this.$ = (view ?
-        'render' in view ?
-          view.render() : view :
-        null) as S;
-    }
-    return this.$;
-  }
-  dispose() {
-    if (this.$) {
-      this.$.remove();
-      delete this.$;
-    }
-    this.bonds.length = 0;
-  }
-  reRender() {
-    this.dispose();
-    return this.render();
-  }
-  removeKey(key: string | string[]) {
-    if (isS(key))
-      delete this.i[key];
-    return this;
-  }
-  addValidators<K extends keyof I>(field: K, validator: (value: I[K], field: K) => boolean | void) {
-    var _a, _b;
-    ((_a = (this.validators || (this.validators = {})))[_b = field as any] || (_a[_b] = [])).push(validator);
-    return this;
-  }
-  private _valid(key, value) {
-    let temp = this.validators[key];
-    if (temp)
-      for (let i = 0; i < temp.length; i++)
-        if (!temp[i](value, key))
-          return false;
-    return true;
-  }
-  set(): this;
-  set<K extends keyof I>(key: K[]): this;
-  set<K extends keyof I>(key: K, value: Pick<I, K>): this;
-  set<K extends keyof I>(key: K, value: I[K]): this;
-  set(values: Partial<I>): this;
-  set(key?: Arr<str> | Dic, value?) {
-    let dt = this.i;
-    if (isO(key)) {
-      if (isA(key)) {
-        let t = {};
-        for (let i = 0; i < key.length; i++) {
-          let t2 = key[i];
-          t[t2] = dt[t2];
-        }
-        key = t;
-      }
-      else {
-        let t = {};
-        for (let k in key) {
-          let val = key[k];
-          if (val !== dt[k] && (!this.validators || this._valid(k, val)))
-            dt[k] = t[k] = val;
-        }
-        if (!Object.keys(key = t).length)
-          return this;
-      }
-    }
-    else if (!key) {
-      key = dt;
-    }
-    else {
-      if (dt[key] === value || (this.validators && !this._valid(key, value)))
-        return this;
-      dt[key] = value;
-      key = { [key]: value };
-    }
-    for (let i = 0, b = this.bonds; i < b.length; i++) {
-      let bond = b[i];
-      if (!bond.prop || bond.prop in key)
-        bond.handler.call(this, bond.e, key);
-    }
-    this.emit('set', key as I);
-    return this;
-  }
-  toggle(key: keyof I) {
-    return this.set(key, !this.i[key] as any);
-  }
-  clone(): this {
-    return new (this.constructor as any)(this.i);
-  }
-  readonly eh: {
-    [P in keyof Events]?: EventTargetCallback<this, Events[P]>[];
-  };
-  on<K extends keyof EEv<Events, I>>(event: K, callback: EventTargetCallback<this, Events[K]>, options?: Options): this;
-  on(callback: EventTargetCallback<this, [Partial<I>]>, options?: Options): this;
-  on(event, callback, options?) {
-    if (isF(event)) {
-      callback = event;
-      event = "set";
-    }
-    return on(this, event, callback, options);
-  }
-  off<K extends keyof Events>(event: K, callback?: EventTargetCallback<this, Events[K]>) {
-    return off(this, event as string, callback);
-  }
-  emit(event: "set", arg: I): this;
-  emit<K extends keyof Events>(event: K, ...args: Events[K]): this;
-  emit(event: str, ...args: any[]) {
-    return emit(this, event as string, ...args);
-  }
-  onset<K extends keyof I>(props: K[] | K, callback: EventTargetCallback<this, [Partial<I>]>, options: Options = {}) {
-    options.check = isS(props) ?
-      e => props in e : e => (props as K[]).some(prop => prop in e);
+export const m = <T extends HSElement = HSElement>(...elements: (S<T> | T)[]) =>
+  new M(...elements);
 
-    return on(this, "set", callback, options);
+// #region --------- interfices -----------------------
+export type EventHandler<T, E> = (this: T, e: E) => any;
+export type HSElement = HTMLElement | SVGElement;
+export type ANYElement = HTMLElement | SVGElement;
+export type InputElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+export type One<T extends HSElement = HTMLElement> = S<T> | Render<T>;
+export type Create = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | S | Render;
+
+export type Tr = S<HTMLTableRowElement>;
+export type Input = S<HTMLInputElement>;
+
+export type Lazy<T> = (() => T) | T;
+export type Properties = _p & {
+  /**electron drag-region */
+  webkitAppRegion?: "drag" | "no-drag";
+};
+export interface Render<T extends HSElement = HSElement> {
+  render(): S<T>;
+}
+export interface MRender<T = any> {
+  render(): T;
+}
+
+export type EventMap<T> = HTMLEventMap<T> | SVGEventMap<T> | {
+  [key: string]: (this: Element, e: Event) => any;
+};
+export type HTMLEventMap<T> = {
+  [K in keyof HTMLElementEventMap]?: (this: T, e: HTMLElementEventMap[K]) => any;
+};
+export type SVGEventMap<T> = {
+  [K in keyof SVGElementEventMap]?: (this: T, e: SVGElementEventMap[K]) => any;
+};
+/**pseudo css elements */
+export interface Pseudo {
+  ":hover": Style;
+  ":active": Style;
+  ":focus": Style;
+  ":focus-within": Style;
+  ":autofill": Style;
+  ":checked": Style;
+  ":invalid": Style;
+  ":empty": Style;
+  ":root": Style;
+  ":enabled": Style;
+  ":disabled": Style;
+  ":link": Style;
+  ":visited": Style;
+  ":lang": Style;
+  ":first-child": Style;
+  ":last-child": Style;
+  ":only-child": Style;
+}
+export type Style = Properties | Pseudo | Styles;
+export type Styles = Dic<Style>;
+// #endregion
+
+// #region --------- utility -----------------------
+
+let _id = 0;
+export const id = () => 'i' + (_id++);
+/** create div element */
+export const div = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) => g("div", props, child);
+/** create span element */
+export const span = (props?: 0 | string[] | string | Partial<HTMLDivElement>, child?: any) => g("span", props, child);
+/**html empty char */
+export const empty = '&#8203;';
+/**get dom active element */
+export const active = () => g(document.activeElement);
+export const isE = (v: any): v is S<any> => v.e && v.e?.nodeType === 1;
+/** convert @type {S<any>} to dom element */
+export const asE = <T extends HSElement>(v: T | S<T>) => (v as S).e ? (v as S).e : v as T;
+/** check if dom element */
+const isD = (v: any): v is HSElement => v.nodeType === 1;
+
+/**create an html element */
+export function html<T extends keyof HTMLElementTagNameMap>(tag: T, props?: string | Partial<HTMLElement>, child?: any) {
+  return g(document.createElementNS('http://www.w3.org/1999/xhtml', tag), props, child);
+}
+/**create an svg element */
+export function svg<T extends keyof SVGElementTagNameMap>(tag: T, attrs?: string | Dic<string | number> | 0 | string | string[], child?: any): S<SVGElementTagNameMap[T]> {
+  var s = new S(document.createElementNS('http://www.w3.org/2000/svg', tag));
+  if (attrs)
+    if (isS(attrs) || isA(attrs))
+      s.c(attrs);
+    else
+      s.attrs(attrs);
+  if (child || child === 0)
+    s.add(child);
+  return s;
+}
+/**convert html string to svg element */
+export function toSVG<T extends SVGElement = SVGElement>(text: string): S<T> {
+  let parser = new DOMParser(), doc = parser.parseFromString(text, "image/svg+xml");
+  return new S(doc.firstChild);
+}
+
+export function onfocusout(e: S, handler: (e: FocusEvent) => any) {
+  handler && e.on('focusout', ev => e.contains(ev.relatedTarget as HTMLElement) || handler.call(e, ev));
+  return e;
+}
+type Wrap0 = S<HSElement> | Element | boolean | number | string | any[];
+type Wrap1 = MRender<Wrap0> | Wrap0;
+type Wrap2 = (() => Wrap1) | Wrap1;
+export function wrap<T extends HTMLElement = HTMLElement>(child: Wrap2, props?: string | 0 | string[] | Partial<T>, tag?: keyof HTMLElementTagNameMap): S<T> {
+  if (isF(child)) child = child();
+  if (isF((child as MRender<Wrap0>)?.render)) child = (child as MRender<Wrap0>).render();
+  if (child instanceof Element) child = new S(child);
+  else if (!(child instanceof S))
+    child = g(tag || "div", 0, child);
+  props && g(child as One, props);
+  return child as any;
+}
+/** select first element that match query same as `document.querySelect` */
+export function get<T extends HSElement = HTMLElement>(selectors: string, ctx?: S | HSElement) {
+  let t = (ctx ? asE(ctx) : document).querySelector<T>(selectors);
+  return t && g(t) as S<T>;
+}
+/** select all element that match query same as `document.querySelectAll` */
+export function getAll<T extends HSElement = HTMLElement>(selectors?: string, context?: S | HSElement) {
+  return new M(...Array.from((context ? asE(context) : document).querySelectorAll<T>(selectors)));
+}
+/**fire event after specified amount of time */
+export function delay<T extends ANYElement, K extends keyof HTMLElementEventMap>(e: S<T>, action: K, delay: number, listener: (this: T, e: HTMLElementEventMap[K]) => any): S<T>;
+export function delay<T extends ANYElement, K extends keyof SVGElementEventMap>(e: S<T>, action: K, delay: number, listener: (this: T, e: SVGElementEventMap[K]) => any): S<T>;
+export function delay(e: S, event: string, time: number, handler: (e: Event) => any) {
+  handler = handler.bind(e.e);
+  return e.on(event, function (e) {
+    var t = `_${event}_timer`;
+    clearTimeout(this[t]);
+    this[t] = setTimeout(handler, time, e);
+  });
+}
+/** stopImmediatePropagation and preventDefault from Event */
+export function clearEvent(e: Event) {
+  e.stopImmediatePropagation();
+  e.preventDefault();
+}
+const cssPropRgx = /[A-Z]/g;
+export function css(props: Style, selector?: string): str;
+export function css(props: Style, s?: string) {
+  let
+    subs = [">", " ", ":", "~", "+"],
+    defSub = ">",
+    r = "", subSel = "", split: string[];
+  function sub(parent: string[], child: string) {
+    return child.split(',')
+      .map(s => parent.map(p => {
+        if (s[0] == "&")
+          return p + s.slice(1);
+        else if (subs.indexOf(s[0]) == -1)
+          return p + defSub + s;
+        else
+          return p + s;
+      }).join(',')).join(',');
   }
-  bind<K extends keyof I, R extends Render>(e: R, handler: BindHandler<this, I, R>, prop?: K, noInit?: boolean): S;
-  bind<K extends keyof I, T extends HSElement>(s: S<T>, handler: BindHandler<this, I, S<T>>, prop?: K, noInit?: boolean): S<T>;
-  bind(element, handler, prop, noInit) {
-    if ('render' in element) {
-      this.bonds.push({ e: element, handler: handler, prop: prop });
-      if (!noInit)
-        handler.call(this, element, this.i);
-      return element.render();
-    } else {
-      this.bonds.push({ e: element, handler: handler, prop: prop });
-      if (!noInit)
-        handler.call(this, element, this.i);
-      return element;
+  if (!s || s[0] == '@') {
+    for (let k in props)
+      r += css(props[k], k);
+    return r ? s ? s + "{" + r + "}" : r : '';
+  }
+  for (let key in props) {
+    let val = props[key];
+    if (val || val === 0) {
+      if (isO(val)) {
+        subSel += css(val, sub(split || (split = s.split(',')), key));
+      }
+      else
+        r += key.replace(cssPropRgx, m => "-" + m) + ":" + val + ";";
     }
   }
-  unbind(s: One) {
-    var i = this.bonds.findIndex(b => (b.e as S).e == (s as S).e || (s as Render) == b.e as Render);
-    if (i != -1)
-      this.bonds.splice(i, 1);
-  }
-  private toJSON() { }
+  return (r ? s + "{" + r + "}" : "") + subSel;
 }
+export const rgba = (r: float, g: float, b: float, a: float) => `rgba(${r},${g},${b},${a})`;
+export const rgb = (r: float, g: float, b: float) => `rgb(${r},${g},${b})`;
+
+// #endregion
+
+// #region ----------main structures ----------------------
 export class S<T extends HSElement = HTMLElement> {
   readonly e?: T;
   constructor();
@@ -556,10 +559,10 @@ export class S<T extends HSElement = HTMLElement> {
       if (isU(v))
         return s[k];
       else
-        s.setProperty(k.replace(regex, m => "-" + m), v, i ? "important" : "");
+        s.setProperty(k.replace(cssPropRgx, m => "-" + m), v, i ? "important" : "");
     else
       for (let _ in k)
-        s.setProperty(_.replace(regex, m => "-" + m), k[_], i ? "important" : "");
+        s.setProperty(_.replace(cssPropRgx, m => "-" + m), k[_], i ? "important" : "");
     return this;
   }
   uncss(): this;
@@ -632,9 +635,6 @@ export class S<T extends HSElement = HTMLElement> {
     return this;
   }
 }
-export const isE = (v: any): v is S<any> => v.e && v.e?.nodeType === 1;
-export const asE = <T extends HSElement>(v: T | S<T>) => (v as S).e ? (v as S).e : v as T;
-const isD = (v: any): v is HSElement => v.nodeType === 1;
 export class M<T extends HSElement = HSElement> extends Array<T>{
   constructor(...elements: (S<T> | T)[])
   constructor(lenght: int)
@@ -726,51 +726,170 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
 export interface M<T extends HSElement = HSElement> {
   slice: (start?: number, end?: number) => M<T>;
 }
-/**html empty char */
-export const empty = '&#8203;';
-export const m = <T extends HSElement = HSElement>(...elements: (S<T> | T)[]) =>
-  new M(...elements);
-export function html<T extends keyof HTMLElementTagNameMap>(tag: T, props?: string | Partial<HTMLElement>, child?: any) {
-  return g(document.createElementNS('http://www.w3.org/1999/xhtml', tag), props, child);
+
+type EEv<Ev, I> = Ev & {set: Partial<I>;};
+export type BindHandler<T, M, B> = (this: E<M>, s: B, model: M) => void;
+export interface Bind<T, M, K extends keyof M> {
+  e: S | Render;
+  prop: K;
+  handler: BindHandler<T, M, E<any> | S>;
 }
-export function svg<T extends keyof SVGElementTagNameMap>(tag: T, attrs?: string | Dic<string | number> | 0 | string | string[], child?: any): S<SVGElementTagNameMap[T]> {
-  var s = new S(document.createElementNS('http://www.w3.org/2000/svg', tag));
-  if (attrs)
-    if (isS(attrs) || isA(attrs))
-      s.c(attrs);
-    else
-      s.attrs(attrs);
-  if (child || child === 0)
-    s.add(child);
-  return s;
+export abstract class E<I = {}, Events extends Dic<any[]> = {}> implements Render, EventObject<Events & { set: [I] }> {
+  /**interface */
+  i: I;
+  $: S;
+  private bonds: { prop, handler: BindHandler<E, I, S | Render>, e: S | Render }[];
+  validators: Dic<Array<(value: any, field: any) => boolean | void>>;
+  constructor(i?: I) {
+    this.bonds = [];
+    this.eh = {};
+    this.i = i || {} as I;
+  }
+  protected view?(): One<HSElement>;
+  focus() {
+    this.$.focus();
+    return this;
+  }
+  render() {
+    if (this.$ === void 0) {
+      let view = this.view();
+      this.$ = (view ?
+        'render' in view ?
+          view.render() : view :
+        null) as S;
+    }
+    return this.$;
+  }
+  dispose() {
+    if (this.$) {
+      this.$.remove();
+      delete this.$;
+    }
+    this.bonds.length = 0;
+  }
+  reRender() {
+    this.dispose();
+    return this.render();
+  }
+  removeKey(key: string | string[]) {
+    if (isS(key))
+      delete this.i[key];
+    return this;
+  }
+  addValidators<K extends keyof I>(field: K, validator: (value: I[K], field: K) => boolean | void) {
+    var _a, _b;
+    ((_a = (this.validators || (this.validators = {})))[_b = field as any] || (_a[_b] = [])).push(validator);
+    return this;
+  }
+  private _valid(key, value) {
+    let temp = this.validators[key];
+    if (temp)
+      for (let i = 0; i < temp.length; i++)
+        if (!temp[i](value, key))
+          return false;
+    return true;
+  }
+  set(): this;
+  set<K extends keyof I>(key: K[]): this;
+  set<K extends keyof I>(key: K, value: Pick<I, K>): this;
+  set<K extends keyof I>(key: K, value: I[K]): this;
+  set(values: Partial<I>): this;
+  set(key?: Arr<str> | Dic, value?) {
+    let dt = this.i;
+    if (isO(key)) {
+      if (isA(key)) {
+        let t = {};
+        for (let i = 0; i < key.length; i++) {
+          let t2 = key[i];
+          t[t2] = dt[t2];
+        }
+        key = t;
+      }
+      else {
+        let t = {};
+        for (let k in key) {
+          let val = key[k];
+          if (val !== dt[k] && (!this.validators || this._valid(k, val)))
+            dt[k] = t[k] = val;
+        }
+        if (!Object.keys(key = t).length)
+          return this;
+      }
+    }
+    else if (!key) {
+      key = dt;
+    }
+    else {
+      if (dt[key] === value || (this.validators && !this._valid(key, value)))
+        return this;
+      dt[key] = value;
+      key = { [key]: value };
+    }
+    for (let i = 0, b = this.bonds; i < b.length; i++) {
+      let bond = b[i];
+      if (!bond.prop || bond.prop in key)
+        bond.handler.call(this, bond.e, key);
+    }
+    this.emit('set', key as I);
+    return this;
+  }
+  toggle(key: keyof I) {
+    return this.set(key, !this.i[key] as any);
+  }
+  clone(): this {
+    return new (this.constructor as any)(this.i);
+  }
+  readonly eh: {
+    [P in keyof Events]?: EventTargetCallback<this, Events[P]>[];
+  };
+  on<K extends keyof EEv<Events, I>>(event: K, callback: EventTargetCallback<this, Events[K]>, options?: Options): this;
+  on(callback: EventTargetCallback<this, [Partial<I>]>, options?: Options): this;
+  on(event, callback, options?) {
+    if (isF(event)) {
+      callback = event;
+      event = "set";
+    }
+    return on(this, event, callback, options);
+  }
+  off<K extends keyof Events>(event: K, callback?: EventTargetCallback<this, Events[K]>) {
+    return off(this, event as string, callback);
+  }
+  emit(event: "set", arg: I): this;
+  emit<K extends keyof Events>(event: K, ...args: Events[K]): this;
+  emit(event: str, ...args: any[]) {
+    return emit(this, event as string, ...args);
+  }
+  onset<K extends keyof I>(props: K[] | K, callback: EventTargetCallback<this, [Partial<I>]>, options: Options = {}) {
+    options.check = isS(props) ?
+      e => props in e : e => (props as K[]).some(prop => prop in e);
+
+    return on(this, "set", callback, options);
+  }
+  bind<K extends keyof I, R extends Render>(e: R, handler: BindHandler<this, I, R>, prop?: K, noInit?: boolean): S;
+  bind<K extends keyof I, T extends HSElement>(s: S<T>, handler: BindHandler<this, I, S<T>>, prop?: K, noInit?: boolean): S<T>;
+  bind(element, handler, prop, noInit) {
+    if ('render' in element) {
+      this.bonds.push({ e: element, handler: handler, prop: prop });
+      if (!noInit)
+        handler.call(this, element, this.i);
+      return element.render();
+    } else {
+      this.bonds.push({ e: element, handler: handler, prop: prop });
+      if (!noInit)
+        handler.call(this, element, this.i);
+      return element;
+    }
+  }
+  unbind(s: One) {
+    var i = this.bonds.findIndex(b => (b.e as S).e == (s as S).e || (s as Render) == b.e as Render);
+    if (i != -1)
+      this.bonds.splice(i, 1);
+  }
+  private toJSON() { }
 }
-export function toSVG<T extends SVGElement = SVGElement>(text: string): S<T> {
-  let parser = new DOMParser(), doc = parser.parseFromString(text, "image/svg+xml");
-  return new S(doc.firstChild);
-}
-type Wrap0 = S<HSElement> | Element | boolean | number | string | any[];
-type Wrap1 = MRender<Wrap0> | Wrap0;
-type Wrap2 = (() => Wrap1) | Wrap1;
-export function wrap<T extends HTMLElement = HTMLElement>(child: Wrap2, props?: string | 0 | string[] | Partial<T>, tag?: keyof HTMLElementTagNameMap): S<T> {
-  if (isF(child)) child = child();
-  if (isF((child as MRender<Wrap0>)?.render)) child = (child as MRender<Wrap0>).render();
-  if (child instanceof Element) child = new S(child);
-  else if (!(child instanceof S))
-    child = g(tag || "div", 0, child);
-  props && g(child as One, props);
-  return child as any;
-}
-export function onfocusout(e: S, handler: (e: FocusEvent) => any) {
-  handler && e.on('focusout', ev => e.contains(ev.relatedTarget as HTMLElement) || handler.call(e, ev));
-  return e;
-}
-export function get<T extends HSElement = HTMLElement>(query: string, ctx?: S | HSElement) {
-  let t = (ctx ? asE(ctx) : document).querySelector<T>(query);
-  return t && g(t) as S<T>;
-}
-export function getAll<T extends HSElement = HTMLElement>(input?: string, ctx?: S | HSElement) {
-  return new M(...Array.from((ctx ? asE(ctx) : document).querySelectorAll<T>(input)));
-}
+// #endregion
+
+/**@deprecated */
 class CL extends Array<string> {
   push(...cls: Array<string | string[]>) {
     for (let t of cls) {
@@ -789,104 +908,3 @@ export function cl(...cls: Array<string | string[]>) {
     c.push(...cls);
   return c;
 }
-export interface Render<T extends HSElement = HSElement> {
-  render(): S<T>;
-}
-export interface MRender<T = any> {
-  render(): T;
-}
-let _id = 0;
-export const id = () => 'i' + (_id++);
-export type EventHandler<T, E> = (this: T, e: E) => any;
-export type HSElement = HTMLElement | SVGElement;
-export type ANYElement = HTMLElement | SVGElement;
-export type InputElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-export type One<T extends HSElement = HTMLElement> = S<T> | Render<T>;
-export type Create = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | S | Render;
-export type BindHandler<T, M, B> = (this: E<M>, s: B, model: M) => void;
-export interface Bind<T, M, K extends keyof M> {
-  e: S | Render;
-  prop: K;
-  handler: BindHandler<T, M, E<any> | S>;
-}
-export type EventMap<T> = HTMLEventMap<T> | SVGEventMap<T> | {
-  [key: string]: (this: Element, e: Event) => any;
-};
-export type HTMLEventMap<T> = {
-  [K in keyof HTMLElementEventMap]?: (this: T, e: HTMLElementEventMap[K]) => any;
-};
-export type SVGEventMap<T> = {
-  [K in keyof SVGElementEventMap]?: (this: T, e: SVGElementEventMap[K]) => any;
-};
-export function clearEvent(e: Event) {
-  e.stopImmediatePropagation();
-  e.preventDefault();
-}
-export type Lazy<T> = (() => T) | T
-
-export type Tr = S<HTMLTableRowElement>;
-export type Input = S<HTMLInputElement>;
-
-//#region css
-
-//tag ? tag.add(r) : g("style").text(r).addTo(document.head) as S<HTMLStyleElement>;
-interface Pseudo {
-  ":hover": Style;
-  ":active": Style;
-  ":focus": Style;
-  ":focus-within": Style;
-  ":autofill": Style;
-  ":checked": Style;
-  ":invalid": Style;
-  ":empty": Style;
-  ":root": Style;
-  ":enabled": Style;
-  ":disabled": Style;
-  ":link": Style;
-  ":visited": Style;
-  ":lang": Style;
-  ":first-child": Style;
-  ":last-child": Style;
-  ":only-child": Style;
-}
-export type Style = _p | Pseudo | Dic<Style>;
-export type Styles = Dic<Style>;
-const
-  subs = [">", " ", ":", "~", "+"],
-  defSub = ">",
-  regex = /[A-Z]/g,
-  sub = (parent: string[], child: string) => child.split(',')
-    .map(s => parent.map(p => {
-      if (s[0] == "&")
-        return p + s.slice(1);
-      else if (subs.indexOf(s[0]) == -1)
-        return p + defSub + s;
-      else
-        return p + s;
-    }).join(',')).join(',');
-
-export function css(props: Style, selector?: string): str;
-export function css(props: Style, s?: string) {
-  let r = "", subSel = "", split: string[];
-  if (!s || s[0] == '@') {
-    for (let k in props)
-      r += css(props[k], k);
-    return r ? s ? s + "{" + r + "}" : r : '';
-  }
-  for (let key in props) {
-    let val = props[key];
-    if (val || val === 0) {
-      if (isO(val)) {
-        subSel += css(val, sub(split || (split = s.split(',')), key));
-      }
-      else
-        r += key.replace(regex, m => "-" + m) + ":" + val + ";";
-    }
-  }
-  return (r ? s + "{" + r + "}" : "") + subSel;
-}
-//#endregion
-//#region util
-export const rgba = (r: float, g: float, b: float, a: float) => `rgba(${r},${g},${b},${a})`;
-export const rgb = (r: float, g: float, b: float) => `rgb(${r},${g},${b})`;
-//#endregion
