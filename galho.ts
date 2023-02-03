@@ -547,19 +547,19 @@ export class S<T extends HSElement = HTMLElement> {
     return this;
   }
 
-  css<T extends keyof Properties>(property: T): string;
-  css<T extends keyof Properties>(property: T, value: Properties[T]): this;
+  css<T extends keyof Properties>(property: T, important?: bool): string;
+  css<T extends keyof Properties>(property: T, value: Properties[T], important?: bool): this;
   css(styles: Properties): this;
-  css(css, value?) {
+  css(k, v?, i?: bool) {
     let s = this.e.style;
-    if (isS(css))
-      if (isU(value))
-        return s[css];
+    if (isS(k))
+      if (isU(v))
+        return s[k];
       else
-        s[css] = value;
+        s.setProperty(k.replace(regex, m => "-" + m), v, i ? "important" : "");
     else
-      for (let key in css)
-        s[key] = css[key];
+      for (let _ in k)
+        s.setProperty(_.replace(regex, m => "-" + m), k[_], i ? "important" : "");
     return this;
   }
   uncss(): this;
@@ -646,7 +646,7 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
   e(i: number) { return new S(this[i]); }
   on<K extends keyof HTMLElementEventMap>(action: K, listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): M<T>;
   on<K extends keyof SVGElementEventMap>(action: K, listener: (this: T, e: SVGElementEventMap[K]) => any, options?: AddEventListenerOptions): M<T>
-  on(event, listener, options) {
+  on(event: string, listener: EventListenerOrEventListenerObject, options: boolean | AddEventListenerOptions) {
     for (let i = 0; i < this.length; i++)
       this[i].addEventListener(event, listener, options);
     return this;
@@ -660,7 +660,7 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
     for (let i = 0; i < this.length; i++) {
       let t = this[i].style;
       for (let css in props)
-        t.setProperty(css, props[css], important && "important");
+        t.setProperty(css, props[css], important ? "important" : "");
     }
     return this;
   }
