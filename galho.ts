@@ -221,8 +221,10 @@ export class S<T extends HSElement = HTMLElement> {
   constructor(e?: T) {
     this.e = e;
   }
-  toJSON() { }
+  static empty: S<any>;
   get valid() { return !!this.e; }
+  toJSON() { }
+  
   rect() { return this.e.getBoundingClientRect(); }
   contains(child: S<any> | HSElement) {
     return child ? this.e.contains(asE(child)) : false;
@@ -268,13 +270,6 @@ export class S<T extends HSElement = HTMLElement> {
       this.e.removeEventListener(e, listener);
     return this;
   }
-  /**@deprecated */
-  try<T>(action: (e: this) => T) {
-    if (this.valid)
-      action(this);
-    return this;
-  }
-  static empty: S<any>;
   put(position: InsertPosition, child: any) {
     switch (typeof child) {
       case 'object':
