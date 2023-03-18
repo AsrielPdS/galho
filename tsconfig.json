@@ -5,7 +5,7 @@
     "inlineSourceMap": true,
     "lib": [
       "DOM",
-      "ES2020"
+      "ESNext"
     ],
     "module": "ESNext",
     "alwaysStrict": true,

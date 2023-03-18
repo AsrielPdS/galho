@@ -1,6 +1,9 @@
-import { EventObject, EventTargetCallback, Options, emit, on } from "./event.js";
+import { emit, on } from "./event.js";
+import type { EventObject, EventTargetCallback, Options } from "./event.js";
 import { S } from "./galho.js";
-import { bool, Dic, int, isF, Key, l, str } from "./util.js";
+import { isF, l } from "./util.js";
+import type { bool, Dic, int, Key, str } from "./util.js";
+
 type CalcOptions = {
   vars: Dic;
 };
@@ -186,12 +189,12 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     }
     return false;
   }
-  includes(searchElement: Key, fromIndex?: number): boolean 
-  includes(searchElement: T, fromIndex?: number): boolean 
+  includes(searchElement: Key, fromIndex?: number): boolean
+  includes(searchElement: T, fromIndex?: number): boolean
   includes(searchElement: T | Key, fromIndex?: number): boolean {
     let k = this.key;
     if (k) {
-      for (fromIndex=0; fromIndex < this.length; fromIndex++) {
+      for (fromIndex = 0; fromIndex < this.length; fromIndex++) {
         let j = this[fromIndex];
         if (j === searchElement || j[k] === searchElement)
           return true;
@@ -296,7 +299,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     emit(this, 'tag:' + k, t?.v);
     emit(this, "update", { tp: "tag", tag: k, newI: t?.i, oldI: o });
   }
-  ontag(key: str, callback: (this: L<T, A>, e: T) => any) {
+  ontag(key: str, callback: (this: L<T, A>, e: T|undefined) => any) {
     on(this, `tag:${key}`, callback);
     return this;
     //return on(l,<any>(), callback);

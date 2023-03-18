@@ -1,6 +1,8 @@
-import { EventObject, Options, emit, off, on, EventTargetCallback } from "./event.js";
+import type { EventObject, Options, EventTargetCallback } from "./event.js";
+import { emit, off, on } from "./event.js";
 import type { Properties as _p } from "csstype";
-import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, float, int, def } from "./util.js";
+import type { Arr, Dic, str, falses, unk, bool, float, int } from "./util.js";
+import { isA, isN, isO, isF, def, isS, isU, l, } from "./util.js";
 
 /**
  * create new element set props and append child
@@ -11,7 +13,7 @@ import { Arr, Dic, isA, isF, isN, isO, isS, isU, l, str, falses, unk, bool, floa
 export default function create<K extends keyof HTMLElementTagNameMap>(element: K, props?: Partial<HTMLElementTagNameMap[K]> | string | string[] | 0, childs?: any): S<HTMLElementTagNameMap[K]>;
 export default function create<T extends HTMLElement = HTMLElement>(element: Create, props?: Partial<T> | string | string[] | 0, childs?: any): S<T>
 export default function create(e: Create, arg0, arg1) {
-  if (!e)  return null;
+  if (!e) return null;
   let r = isS(e) ?
     new S(document.createElement(e)) :
     isD(e) ?
@@ -224,7 +226,7 @@ export class S<T extends HSElement = HTMLElement> {
   static empty: S<any>;
   get valid() { return !!this.e; }
   toJSON() { }
-  
+
   rect() { return this.e.getBoundingClientRect(); }
   contains(child: S<any> | HSElement) {
     return child ? this.e.contains(asE(child)) : false;
@@ -442,11 +444,13 @@ export class S<T extends HSElement = HTMLElement> {
   }
   /**first child */
   first<T extends HSElement = HSElement>() {
-    return g(this.e.firstElementChild as T);
+    let e = this.e.firstElementChild as T;
+    return e && new S(e);
   }
   /**last child */
   last<T extends HSElement = HSElement>() {
-    return g(this.e.lastElementChild as T);
+    let e = this.e.lastElementChild as T;
+    return e && new S(e);
   }
 
   childs(): M;
@@ -465,14 +469,18 @@ export class S<T extends HSElement = HTMLElement> {
   query<K extends keyof HTMLElementTagNameMap>(filter: K): S<HTMLElementTagNameMap[K]>;
   query<U extends HTMLElement | SVGElement = HTMLElement>(filter: string): S<U>;
   query(filter: string) {
-    return new S(this.e.querySelector(filter));
+    let e = this.e.querySelector(filter);
+    return e && new S(e);
   }
   queryAll<K extends keyof HTMLElementTagNameMap>(filter: K): M<HTMLElementTagNameMap[K]>;
   queryAll<U extends HTMLElement | SVGElement = HTMLElement>(filter: string): M<U>;
   queryAll(filter: string) {
     return new M(...Array.from(this.e.querySelectorAll(filter)) as HTMLElement[]);
   }
-  parent() { return new S(this.e.parentElement); }
+  parent() {
+    let e = this.e.parentElement;
+    return e && new S(e);
+  }
   closest<K extends keyof HTMLElementTagNameMap>(filter: K): S<HTMLElementTagNameMap[K]>;
   closest(filter: string): S
   closest(filter: string) {
@@ -490,10 +498,12 @@ export class S<T extends HSElement = HTMLElement> {
     return new S(this.e.cloneNode(deep));
   }
   prev() {
-    return new S(this.e.previousElementSibling);
+    let e = this.e.previousElementSibling;
+    return e && new S(e);
   }
   next() {
-    return new S(this.e.nextElementSibling);
+    let e = this.e.nextElementSibling;
+    return e && new S(e);
   }
   /**get property */
   p<K extends keyof T>(key: K): T[K];
@@ -659,8 +669,9 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
     }
     return this;
   }
-
+  /**remove all inline css */
   uncss(): this;
+  /**remove inline css */
   uncss(properties: Array<keyof Properties>): this;
   uncss(p?: str[]) {
     for (let i = 0; i < this.length; i++) {
@@ -671,7 +682,13 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
     }
     return this;
   }
-  c(names: string[] | string, set?: boolean) {
+  /**add classes */
+  c(names: str[] | str): this;
+  /**add or remove classes 
+   * @param set if `false` remove classes otherwise add
+  */
+  c(names: str[] | str, set: boolean): this;
+  c(names: str[] | str, set?: boolean) {
     isS(names) && (names = names.split(' ').filter(v => v));
     for (let i = 0; i < this.length; i++) {
       this[i].classList[set === false ? 'remove' : 'add'](...names);
@@ -722,7 +739,7 @@ export interface M<T extends HSElement = HSElement> {
   slice: (start?: number, end?: number) => M<T>;
 }
 
-type EEv<Ev, I> = Ev & {set: Partial<I>;};
+type EEv<Ev, I> = Ev & { set: Partial<I>; };
 export type BindHandler<T, M, B> = (this: E<M>, s: B, model: M) => void;
 export interface Bind<T, M, K extends keyof M> {
   e: S | Render;

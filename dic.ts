@@ -1,4 +1,4 @@
-import { Dic } from "./util.js";
+import type { Dic } from "./util.js";
 
 export function any<T = any>(dic: Dic<T>, fn?: (value: T, key: string) => unknown) {
   for (let key in dic)

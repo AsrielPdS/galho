@@ -20,7 +20,7 @@ export type falses = false | 0 | "" | undefined | null;
 export type Pair<V = any, K = str> = [key: K, val: V];
 export type Arr<T> = T[] | T;
 export type Task<T> = T | Promise<T>;
-export const is = <T extends Object>(value: unk, type: { new(...args:any): T }): value is T => value instanceof type;
+export const is = <T extends Object>(value: unk, type: { new(...args: any): T }): value is T => value instanceof type;
 /**is string */
 export const isS = (value: unk): value is str => typeof value === 'string';
 /**is function */
@@ -47,6 +47,7 @@ export function extend<T extends object, U = Partial<T>>(obj: T, extension: U, o
   }
   return obj as T & U;
 }
+export const clone = <T>(v: T) => assign({}, v);
 export function delay(index: number, cb: Function, time?: float): number {
   clearTimeout(index);
   return setTimeout(cb, time);
@@ -91,9 +92,10 @@ export function byKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: 
   return null;
 }
 export const
-  create = <T extends Object>(constructor: new () => T, obj: Partial<T>): T => assign(new constructor(), obj),
+  create = <T extends Object, A extends any[] = any[]>(constructor: new (...a: A) => T, obj: Partial<T>,...a:A): T => assign(new constructor(...a), obj),
   json = JSON.stringify,
-  date = (d: Date): [y: int, M: int, d: int, h: int, m: int, s: int] =>
+  /**explode date */
+  edate = (d: Date): [y: int, M: int, d: int, h: int, m: int, s: int] =>
     [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()];
 
 const
@@ -115,11 +117,11 @@ export const
   fmtDT = (v: number | Date) => _fmtDT.format(v),
   /**format currency */
   fmtc = (v: str | number | bigint) => _fmtc.format(<number>v),
-  /**format percent(%) */
+  /**format percent */
   fmtp = (v: str | number | bigint) => _fmtp.format(<number>v),
   /**format number */
   fmtn = (v: str | number | bigint) => _fmtn.format(<number>v),
-  fmts: Dic<any/*(value:any) => string */> = {
+  fmts: Dic<(value: any) => str> = {
     d: fmtd, t: fmtt, D: fmtDT,
     c: fmtc, f: fmtn, p: fmtp,
     n: fmtn,
@@ -128,8 +130,8 @@ export type Fmts =
     /**time          */"t" |
     /**date          */"d" |
     /**date & time   */"D" |
-    /**currency      */"$" |
-    /**percent       */"%" |
+    /**currency      */"c" |
+    /**percent       */"p" |
     /**decimal(numb) */"n" |
     /**integer       */"i";
 export function fmt(v: Date | number | string, pattern?: Fmts): str

@@ -1,5 +1,5 @@
-import { assign, bool, Dic, float, str } from "./util.js";
-
+import { assign } from "./util.js";
+import type { bool, Dic, float, str } from "./util.js";
 /**event arg */
 export interface Arg<T = any> {
   v: T;
