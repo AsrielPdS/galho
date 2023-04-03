@@ -70,7 +70,7 @@ export const distinct = <T>(arr: Array<T>) => arr.filter((f, i) => {
 export const z = <T>(a: ArrayLike<T>) => a[l(a) - 1];
 export const filter: {
   <T>(arr: Array<T>, filter: (v: T, i: number) => boolean): T[];
-  /**filter all true values */
+  /**filter all non false values */
   <T>(arr: Array<T>): Exclude<T, falses>[];
 } = <T>(arr: Array<T>, filter?: (v: T, i: number) => boolean) =>
     arr.filter(filter || (v => v));
