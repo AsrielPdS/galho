@@ -14,7 +14,7 @@ type _ = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | Ev
 export function g<K extends keyof HTMLElementTagNameMap>(tagName: K, props?: Partial<HTMLElementTagNameMap[K]> | Arr<str> | falses, childs?: any): S<HTMLElementTagNameMap[K]>;
 export function g<T extends HSElement = HTMLElement>(element: Element | T | S<T> | Render<T>, props?: Partial<T> | Arr<str> | falses, childs?: any): S<T>;
 export function g<T extends HSElement = HTMLElement>(tagName: EventTarget, props?: Partial<T> | Arr<str> | falses, childs?: any): S<T>;
-export function g(e: _, arg0, arg1) {
+export function g(e: _, arg0: any, arg1: any) {
   if (!e) return null;
   let r = isS(e) ?
     new S(document.createElement(e)) :
@@ -203,7 +203,7 @@ export function css(props: Style, s?: string) {
         subSel += css(val, sub(split || (split = s.split(',')), key));
       }
       else
-        r += key.replace(cssPropRgx, m => "-" + m) + ":" + val + ";";
+        r += key.replace(cssPropRgx, m => "-" + m.toLowerCase()) + ":" + val + ";";
     }
   }
   return (r ? s + "{" + r + "}" : "") + subSel;
@@ -223,6 +223,9 @@ export class S<T extends HSElement = HTMLElement> {
     this.e = e;
   }
   static empty: S<any>;
+  get active() {
+    return this.e.ownerDocument.activeElement == this.e;
+  }
   get parent() {
     let e = this.e.parentElement;
     return e && new S(e);
