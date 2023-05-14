@@ -41,7 +41,7 @@ export function emit<T extends EventObject, K extends keyof T["eh"]>(e: T, event
   if (!e.slip) {
     let stack = e.eh[event];
     if (stack)
-      for (let i = 0, l = stack.length; i < l; i++) {
+      for (let i = 0; i < stack.length; i++) {
         let h = stack[i];
         if (!h.check || h.check.apply(e, args)) {
           if (h.once)
