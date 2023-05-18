@@ -40,7 +40,7 @@ export const isP = (value: any): value is PromiseLike<any> => value && isF(value
 export const isA = <T = any>(value: any): value is T[] => Array.isArray(value);
 export const wait = (ms?: int) => new Promise(r => setTimeout(r, ms));
 export const assign: { <T>(t: T, ...s: Partial<T>[]): T } & typeof Object.assign = Object.assign;
-export function extend<T extends object, U = Partial<T>>(obj: T, extension: U, override?:bool) {
+export function extend<T extends object, U = Partial<T>>(obj: T, extension: U, override?: bool) {
   for (let key in extension) {
     let e = extension[key];
     isU(e) || ((override || isU(obj[key as any])) && (obj[key as any] = e));
@@ -92,7 +92,7 @@ export function byKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: 
   return null;
 }
 export const
-  create = <T extends Object, A extends any[] = any[]>(constructor: new (...a: A) => T, obj: Partial<T>,...a:A): T => assign(new constructor(...a), obj),
+  create = <T extends Object, A extends any[] = any[]>(constructor: new (...a: A) => T, obj: Partial<T>, ...a: A): T => assign(new constructor(...a), obj),
   json = JSON.stringify,
   /**explode date */
   edate = (d: Date): [y: int, M: int, d: int, h: int, m: int, s: int] =>
@@ -108,24 +108,24 @@ const
   _fmtDT = new Intl.DateTimeFormat(void 0, { dateStyle: "short", timeStyle: "short" });
 export const
   /**format date*/
-  fmtd = (v: number | Date) => _fmtd.format(v),
-  /**format time */
-  fmtt = (v: number | Date) => _fmtt.format(v),
-  /**format month */
-  fmtm = (v: number | Date) => _fmtm.format(v),
-  /**format date & time */
-  fmtDT = (v: number | Date) => _fmtDT.format(v),
-  /**format currency */
-  fmtc = (v: str | number | bigint) => _fmtc.format(<number>v),
-  /**format percent */
-  fmtp = (v: str | number | bigint) => _fmtp.format(<number>v),
-  /**format number */
-  fmtn = (v: str | number | bigint) => _fmtn.format(<number>v),
-  fmts: Dic<(value: any) => str> = {
-    d: fmtd, t: fmtt, D: fmtDT,
-    c: fmtc, f: fmtn, p: fmtp,
-    n: fmtn,
-  };
+  fmtd = (v: number | Date) => v == null ? "" : _fmtd.format(v),
+/**format time */
+fmtt = (v: number | Date) => v == null ? "" : _fmtt.format(v),
+/**format month */
+fmtm = (v: number | Date) => v == null ? "" : _fmtm.format(v),
+/**format date & time */
+fmtDT = (v: number | Date) => v == null ? "" : _fmtDT.format(v),
+/**format currency */
+fmtc = (v: str | number | bigint) => v == null ? "" : _fmtc.format(<number>v),
+/**format percent */
+fmtp = (v: str | number | bigint) => v == null ? "" : _fmtp.format(<number>v),
+/**format number */
+fmtn = (v: str | number | bigint) => v == null ? "" : _fmtn.format(<number>v),
+fmts: Dic<(value: any) => str> = {
+  d: fmtd, t: fmtt, D: fmtDT,
+  c: fmtc, f: fmtn, p: fmtp,
+  n: fmtn,
+};
 export type Fmts =
     /**time          */"t" |
     /**date          */"d" |
