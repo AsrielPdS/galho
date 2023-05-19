@@ -100,7 +100,7 @@ export const
 
 const
   _fmtc = new Intl.NumberFormat(void 0, { style: "currency", currency: "AOA" }),
-  _fmtp = new Intl.NumberFormat(void 0, { style: "percent" }),
+  _fmtp = new Intl.NumberFormat(void 0, { style: "percent",maximumFractionDigits:1 }),
   _fmtd = new Intl.DateTimeFormat(void 0, { dateStyle: "short" }),
   _fmtt = new Intl.DateTimeFormat(void 0, { timeStyle: "short" }),
   _fmtm = new Intl.DateTimeFormat(void 0, { year: "numeric", month: "long" }),
