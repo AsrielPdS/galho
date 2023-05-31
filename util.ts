@@ -47,7 +47,7 @@ export function extend<T extends object, U = Partial<T>>(obj: T, extension: U, o
   }
   return obj as T & U;
 }
-export const clone = <T>(v: T) => assign({}, v);
+export const clone = <T>(v: T) => assign({}, v) as T;
 export function delay(index: number, cb: Function, time?: float): number {
   clearTimeout(index);
   return setTimeout(cb, time);
@@ -100,7 +100,7 @@ export const
 
 const
   _fmtc = new Intl.NumberFormat(void 0, { style: "currency", currency: "AOA" }),
-  _fmtp = new Intl.NumberFormat(void 0, { style: "percent",maximumFractionDigits:1 }),
+  _fmtp = new Intl.NumberFormat(void 0, { style: "percent", maximumFractionDigits: 1 }),
   _fmtd = new Intl.DateTimeFormat(void 0, { dateStyle: "short" }),
   _fmtt = new Intl.DateTimeFormat(void 0, { timeStyle: "short" }),
   _fmtm = new Intl.DateTimeFormat(void 0, { year: "numeric", month: "long" }),
@@ -109,23 +109,23 @@ const
 export const
   /**format date*/
   fmtd = (v: number | Date) => v == null ? "" : _fmtd.format(v),
-/**format time */
-fmtt = (v: number | Date) => v == null ? "" : _fmtt.format(v),
-/**format month */
-fmtm = (v: number | Date) => v == null ? "" : _fmtm.format(v),
-/**format date & time */
-fmtDT = (v: number | Date) => v == null ? "" : _fmtDT.format(v),
-/**format currency */
-fmtc = (v: str | number | bigint) => v == null ? "" : _fmtc.format(<number>v),
-/**format percent */
-fmtp = (v: str | number | bigint) => v == null ? "" : _fmtp.format(<number>v),
-/**format number */
-fmtn = (v: str | number | bigint) => v == null ? "" : _fmtn.format(<number>v),
-fmts: Dic<(value: any) => str> = {
-  d: fmtd, t: fmtt, D: fmtDT,
-  c: fmtc, f: fmtn, p: fmtp,
-  n: fmtn,
-};
+  /**format time */
+  fmtt = (v: number | Date) => v == null ? "" : _fmtt.format(v),
+  /**format month */
+  fmtm = (v: number | Date) => v == null ? "" : _fmtm.format(v),
+  /**format date & time */
+  fmtDT = (v: number | Date) => v == null ? "" : _fmtDT.format(v),
+  /**format currency */
+  fmtc = (v: str | number | bigint) => v == null ? "" : _fmtc.format(<number>v),
+  /**format percent */
+  fmtp = (v: str | number | bigint) => v == null ? "" : _fmtp.format(<number>v),
+  /**format number */
+  fmtn = (v: str | number | bigint) => v == null ? "" : _fmtn.format(<number>v),
+  fmts: Dic<(value: any) => str> = {
+    d: fmtd, t: fmtt, D: fmtDT,
+    c: fmtc, f: fmtn, p: fmtp,
+    n: fmtn,
+  };
 export type Fmts =
     /**time          */"t" |
     /**date          */"d" |

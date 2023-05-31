@@ -1,7 +1,7 @@
 import type { EventObject, Options, EventTargetCallback } from "./event.js";
 import { emit, off, on } from "./event.js";
 import type { Properties as _p } from "csstype";
-import type { Arr, Dic, str, falses, unk, bool, float, int, Key } from "./util.js";
+import { Arr, Dic, str, falses, unk, bool, float, int, Key, is } from "./util.js";
 import { isA, isN, isO, isF, def, isS, isU, l, } from "./util.js";
 
 type _ = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | EventTarget | S | Render;
@@ -18,11 +18,9 @@ export function g(e: _, arg0: any, arg1: any) {
   if (!e) return null;
   let r = isS(e) ?
     new S(document.createElement(e)) :
-    isD(e) ?
-      new S(e) :
-      'render' in e ?
-        e.render() :
-        e as S;
+    'render' in e ?
+      e.render() :
+      is(e, S) ? e : new S(e);
   if (arg0)
     isS(arg0) ?
       isS(e) ?
@@ -98,10 +96,21 @@ export type Styles = Dic<Style>;
 
 let _id = 0;
 export const id = () => 'i' + (_id++);
-/** create div element */
-export const div = (props?: falses | Arr<str> | Partial<HTMLDivElement>, child?: any) => g("div", props, child);
-/** create span element */
-export const span = (props?: falses | Arr<str> | Partial<HTMLDivElement>, child?: any) => g("span", props, child);
+/** create div element
+* @param props if is string or string array will the class if not will be set as props of created element 
+* @param childs elements, string, number or anything that can be append to an element */
+export function div(props?: falses | Arr<str> | Partial<HTMLDivElement>, childs?: any) {
+  let r = new S(document.createElement("div"))
+  if (props)
+    isS(props) ?
+      r.attr("class", props) :
+      isA(props) ?
+        r.c(props) :
+        r.p(props);
+
+  childs != null && r.add(childs);
+  return r;
+}
 /**html empty char */
 export const empty = '&#8203;';
 /**get dom active element */
@@ -152,7 +161,7 @@ export function wrap<T extends HTMLElement = HTMLElement>(child: Wrap2, props?: 
 }
 /** select first element that match query same as `document.querySelect` */
 export function get<T extends HSElement = HTMLElement>(selectors: string, ctx?: S | HSElement) {
-  let t = (ctx ? asE(ctx) : document).querySelector<T>(selectors);
+  let t = (ctx ? asE(ctx) : document).querySelector(selectors) as T;
   return t && g(t) as S<T>;
 }
 /** select all element that match query same as `document.querySelectAll` */
@@ -219,9 +228,7 @@ export class S<T extends HSElement = HTMLElement> {
   constructor();
   constructor(e: T);
   constructor(e: EventTarget);
-  constructor(e?: T) {
-    this.e = e;
-  }
+  constructor(e?: T) { this.e = e; }
   static empty: S<any>;
   get active() {
     return this.e.ownerDocument.activeElement == this.e;
@@ -589,7 +596,8 @@ export class S<T extends HSElement = HTMLElement> {
   /**add or remove classes */
   c(classes: Arr<str>, set: bool): this;
   c(names: Arr<str>, set?: bool) {
-    this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, (isS(names) ? names.trim().split(' ') : names).filter(n => n));
+    if (names)
+      this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, (isS(names) ? names.trim().split(' ') : names).filter(n => n));
     return this;
   }
   /**@deprecated */

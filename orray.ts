@@ -1,7 +1,7 @@
 import { emit, on } from "./event.js";
 import type { EventObject, EventTargetCallback, Options } from "./event.js";
 import { S } from "./galho.js";
-import { isF, l } from "./util.js";
+import { arr, isA, isF, l } from "./util.js";
 import type { bool, Dic, int, Key, str } from "./util.js";
 
 type CalcOptions = {
@@ -535,12 +535,12 @@ export function extend<T = any, A = T>(l?: Alias<T, A>, opts?: IList<T, A>) {
   return l as L<T, A>;
 }
 
-export default function _<T = any, A = T>(options: IList<T, A>): L<T, A>;
-export default function _<T = any, A = T>(array?: L<T, A>, options?: Parse<T, A>): L<T, A>;
-export default function _<T = any, A = T>(array?: Array<T | A>, options?: IList<T, A>): L<T, A>;
-export default function _<T = any, A = T>(array?: Alias<T, A>, options?: IList<T, A>): L<T, A>;
-export default function _<T = any, A = T>(array?: Array<T | A> | IList<T, A> | L<T, A>, opts?: IList<T, A> | Parse<T, A>) {
-  if (array && !('length' in array)) {
+export function orray<T = any, A = T>(options: IList<T, A>): L<T, A>;
+export function orray<T = any, A = T>(array?: L<T, A>, options?: Parse<T, A>): L<T, A>;
+export function orray<T = any, A = T>(array?: Array<T | A>, options?: IList<T, A>): L<T, A>;
+export function orray<T = any, A = T>(array?: Alias<T, A>, options?: IList<T, A>): L<T, A>;
+export function orray<T = any, A = T>(array?: Array<T | A> | IList<T, A> | L<T, A>, opts?: IList<T, A> | Parse<T, A>) {
+  if (!isA(array)) {
     opts = array;
     array = null;
   }
@@ -562,8 +562,7 @@ export default function _<T = any, A = T>(array?: Array<T | A> | IList<T, A> | L
     l.put(0, ...(array as any[]));
   return l;
 }
-export const orray = _;
-
+export default orray;
 
 //#region groups 
 
