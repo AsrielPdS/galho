@@ -185,8 +185,8 @@ export function clearEvent(e: Event) {
   e.preventDefault();
 }
 const cssPropRgx = /[A-Z]/g;
-export function css(props: Style, selector?: string): str;
-export function css(props: Style, s?: string) {
+export function css(props: Style, selector?: string, defSubSelector?: str): str;
+export function css(props: Style, s?: string, defSub = " ") {
   let
     subs = [">", " ", ":", "~", "+"],
     r = "", subSel = "", split: string[];
@@ -197,19 +197,19 @@ export function css(props: Style, s?: string) {
           return p + s;
         if (s.includes("&"))
           return s.replaceAll("&", p);
-        return p + ">" + s;
+        return p + defSub + s;
       }).join(',')).join(',');
   }
   if (!s || s[0] == '@') {
     for (let k in props)
-      r += css(props[k], k);
+      r += css(props[k], k, defSub);
     return r ? s ? s + "{" + r + "}" : r : '';
   }
   for (let key in props) {
     let val = props[key];
     if (val || val === 0) {
       if (isO(val)) {
-        subSel += css(val, sub(split || (split = s.split(',')), key));
+        subSel += css(val, sub(split || (split = s.split(',')), key), defSub);
       }
       else
         r += key.replace(cssPropRgx, m => "-" + m.toLowerCase()) + ":" + val + ";";
@@ -736,6 +736,12 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
           (filter in item.children) && result.push(item.children[filter] as HSElement) :
           result.push.apply(result, item.children);
     return result;
+  }
+  next() {
+    return new M(...this.map(e => e.nextElementSibling as HSElement));
+  }
+  prev() {
+    return new M(...this.map(e => e.previousElementSibling as HSElement));
   }
   do(cb: (v: S<T>, index: number) => any) {
     for (let i = 0; i < this.length; i++)

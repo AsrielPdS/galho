@@ -299,7 +299,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     emit(this, 'tag:' + k, t?.v);
     emit(this, "update", { tp: "tag", tag: k, newI: t?.i, oldI: o });
   }
-  ontag(key: str, callback: (this: L<T, A>, e: T|undefined) => any) {
+  ontag(key: str, callback: (this: L<T, A>, e: T | undefined) => any) {
     on(this, `tag:${key}`, callback);
     return this;
     //return on(l,<any>(), callback);
@@ -420,7 +420,7 @@ export type Alias<T = any, A = T> = Array<T | A> | L<T, A>;
 
 export function copy<S, D, A = S>(src: L<S, A>, dest: L<D>, fill = true, parse: (value: S, index: number) => D = v => v as any) {
   if (fill) dest.set(src.map(parse));
-  return src.onupdate(e => {
+  src.onupdate(e => {
     switch (e.tp) {
       case 'push':
         dest.put(e.start, ...e.items.map((v, i) => parse(v, e.start + i)));
@@ -540,7 +540,7 @@ export function orray<T = any, A = T>(array?: L<T, A>, options?: Parse<T, A>): L
 export function orray<T = any, A = T>(array?: Array<T | A>, options?: IList<T, A>): L<T, A>;
 export function orray<T = any, A = T>(array?: Alias<T, A>, options?: IList<T, A>): L<T, A>;
 export function orray<T = any, A = T>(array?: Array<T | A> | IList<T, A> | L<T, A>, opts?: IList<T, A> | Parse<T, A>) {
-  if (!isA(array)) {
+  if (!opts && !isA(array)) {
     opts = array;
     array = null;
   }
