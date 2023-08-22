@@ -16,15 +16,17 @@ export type JsonO = { [key: string]: JsonR }
 /**json result */
 export type JsonR = str | float | bool | null | JsonA | JsonO;
 
-export type falses = false | 0 | "" | undefined | null;
+export type falsy = false | 0 | 0n | -0 | "" | undefined | null;
 export type Pair<V = any, K = str> = [key: K, val: V];
 export type Arr<T> = T[] | T;
 export type Task<T> = T | Promise<T>;
-export const is = <T extends Object>(value: unk, type: { new(...args: any): T }): value is T => value instanceof type;
+
+/**check if value is instance of type */
+export const is = <T extends Object>(value: unk, type: abstract new (...args: any) => T): value is T => value instanceof type;
 /**is string */
-export const isS = (value: unk): value is str => typeof value === 'string';
+export const isS = (value: unk): value is str => typeof value === "string";
 /**is function */
-export const isF = (value: unk): value is Function => typeof value === 'function';
+export const isF = (value: unk): value is Function => typeof value === "function";
 
 /** is object */
 export const isO = (value: unk): value is Dic => typeof value === "object";
@@ -58,10 +60,7 @@ export const toStr = (v: unk) => v == null ? v + "" : "";
 export const def = <T, D = T>(value: T, def: D): T | D => isU(value) ? def : value;
 /**returns true if value is not false ie.(value===false) t stands for true*/
 export const t = (value: unknown): bool => value !== false;
-export function call<T>(v: T, cb: (v: T) => any): T {
-  cb(v);
-  return v;
-}
+export const call = <T>(v: T, cb: (v: T) => any): T => (cb(v), v);
 export const sub = <T, K extends keyof T>(arr: Array<T>, key: K): T[K][] => arr.map(v => v?.[key]);
 export const distinct = <T>(arr: Array<T>) => arr.filter((f, i) => {
   return arr.indexOf(f, i + 1) == -1;
@@ -70,15 +69,14 @@ export const distinct = <T>(arr: Array<T>) => arr.filter((f, i) => {
 export const z = <T>(a: ArrayLike<T>) => a[l(a) - 1];
 export const filter: {
   <T>(arr: Array<T>, filter: (v: T, i: number) => boolean): T[];
-  /**filter all non false values */
-  <T>(arr: Array<T>): Exclude<T, falses>[];
+  /**filter all truethfull values */
+  <T>(arr: Array<T>): Exclude<T, falsy>[];
 } = <T>(arr: Array<T>, filter?: (v: T, i: number) => boolean) =>
     arr.filter(filter || (v => v));
 
 /**get length of array */
 export const l = (a: ArrayLike<any>) => a.length;
 export const arr = <T>(v: T | T[]): T[] => isA(v) ? v : v === undefined ? [] : [v];
-export const lazy = <T>(value: T | (() => T)): T => isF(value) ? value() : value;
 export function iByKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: K = "key" as any, i = 0) {
   for (; i < arr.length; i++)
     if (name === arr[i][key])
@@ -91,53 +89,11 @@ export function byKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: 
       return arr[i];
   return null;
 }
-export const
-  create = <T extends Object, A extends any[] = any[]>(constructor: new (...a: A) => T, obj: Partial<T>, ...a: A): T => assign(new constructor(...a), obj),
-  json = JSON.stringify,
-  /**explode date */
-  edate = (d: Date): [y: int, M: int, d: int, h: int, m: int, s: int] =>
-    [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()];
-
-const
-  _fmtc = new Intl.NumberFormat(void 0, { style: "currency", currency: "AOA" }),
-  _fmtp = new Intl.NumberFormat(void 0, { style: "percent", maximumFractionDigits: 1 }),
-  _fmtd = new Intl.DateTimeFormat(void 0, { dateStyle: "short" }),
-  _fmtt = new Intl.DateTimeFormat(void 0, { timeStyle: "short" }),
-  _fmtm = new Intl.DateTimeFormat(void 0, { year: "numeric", month: "long" }),
-  _fmtn = new Intl.NumberFormat(),
-  _fmtDT = new Intl.DateTimeFormat(void 0, { dateStyle: "short", timeStyle: "short" });
-export const
-  /**format date*/
-  fmtd = (v: number | Date) => v == null ? "" : _fmtd.format(v),
-  /**format time */
-  fmtt = (v: number | Date) => v == null ? "" : _fmtt.format(v),
-  /**format month */
-  fmtm = (v: number | Date) => v == null ? "" : _fmtm.format(v),
-  /**format date & time */
-  fmtDT = (v: number | Date) => v == null ? "" : _fmtDT.format(v),
-  /**format currency */
-  fmtc = (v: str | number | bigint) => v == null ? "" : _fmtc.format(<number>v),
-  /**format percent */
-  fmtp = (v: str | number | bigint) => v == null ? "" : _fmtp.format(<number>v),
-  /**format number */
-  fmtn = (v: str | number | bigint) => v == null ? "" : _fmtn.format(<number>v),
-  fmts: Dic<(value: any) => str> = {
-    d: fmtd, t: fmtt, D: fmtDT,
-    c: fmtc, f: fmtn, p: fmtp,
-    n: fmtn,
-  };
-export type Fmts =
-    /**time          */"t" |
-    /**date          */"d" |
-    /**date & time   */"D" |
-    /**currency      */"c" |
-    /**percent       */"p" |
-    /**decimal(numb) */"n" |
-    /**integer       */"i";
-export function fmt(v: Date | number | string, pattern?: Fmts): str
-export function fmt(v: Date | number | string, pattern?: str): str
-export function fmt(v: Date | number | string, pattern?: Fmts) {
-  isS(v) && (v = new Date());
-  return fmts[pattern ||= isN(v) ? "n" : v.getHours() || v.getMinutes() ? "D" : "d"](v);
+export const create = <T extends Object, A extends any[] = any[]>(constructor: new (...a: A) => T, obj: Partial<T>, ...a: A): T => assign(new constructor(...a), obj);
+export const json = JSON.stringify;
+export function set<T, K extends keyof T>(o: T, key: K, val: T[K]) {
+  o[key] = val;
+  return o;
 }
-export const concat = (separator: str, ...parts: any[]) => parts.filter(p => p != null).join(separator);
+export const notImp = () => new Error("not implemented");
+export const notF = (key: Key, itemTp?: str, src?: str, srcTp?: str) => new Error(`${itemTp || 'item'} '${key}' not found` + (src ? ` in '${src}' ${srcTp || ""}` : ''));

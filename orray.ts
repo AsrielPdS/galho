@@ -1,8 +1,8 @@
+﻿import type { EventObject, EventTargetCallback, Options } from "./event.js";
 import { emit, on } from "./event.js";
-import type { EventObject, EventTargetCallback, Options } from "./event.js";
-import { S } from "./galho.js";
-import { arr, isA, isF, l } from "./util.js";
-import type { bool, Dic, int, Key, str } from "./util.js";
+import type { S } from "./galho.js";
+import type { Dic, Key, bool, int, str } from "./util.js";
+import { isA, isF, l } from "./util.js";
 
 type CalcOptions = {
   vars: Dic;
@@ -44,6 +44,10 @@ export type UpdateEvent<T> = {
   tag: str;
   newI: number;
   oldI: number;
+} | {
+  tp: "reload";
+  start: int;
+  items: T[];
 };
 export interface EventMap<T> extends Dic<any[]> {
   update: [UpdateEvent<T>];
@@ -225,10 +229,6 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     }
     return on(this, event, callback, options);
   }
-  onupdate(callback: EventTargetCallback<L<T, A>, [UpdateEvent<T>]>) {
-    return on(this, "update", callback) as this;
-  }
-
 
   find<S extends T>(predicate: (value: T, index: number, obj: T[]) => value is S, thisArg?: any): S | undefined;
   find(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): T | undefined;
@@ -324,13 +324,13 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
         if (v)
           s.set(value);
       }
-    }, insert = (items, start) => {
+    }, insert = (items: T[], start: int) => {
       for (let i = 0; i < items.length; i++) {
         let item = items[i], v = bond.insert ? bond.insert.call(this, item, start + i, s) : item;
         if (v)
           s.place(start + i, v);
       }
-    }, remove = (items, start) => {
+    }, remove = (items: T[], start: int) => {
       for (let i = 0; i < items.length; i++) {
         if (bond.remove ? bond.remove.call(this, items[i], start + i, s) : true)
           s.unplace(start + i);
@@ -369,9 +369,22 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
           }
           else
             empty(true);
+          break;
+        case 'reload':
+          if (bond.reload)
+            for (let i = 0; i < opts.items.length; i++) {
+              let item = opts.items[i];
+              let v = bond.reload.call(this, item, opts.start + i, s);
+              if (v) s.child(opts.start + i).replace(v);
+            }
+          else {
+            remove(opts.items, opts.start);
+            insert(opts.items, opts.start);
+          }
+
       }
     };
-    this.onupdate(fn);
+    this.on(fn);
     if (bond.groups)
       if (isF(bond.groups))
         for (let g in this.g)
@@ -384,19 +397,16 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     insert(this, 0);
     return s;
   }
-  /**
-   * volta a chamar o bind do elemento
-   * @param items
-   */
-  reload(item: Key | T) {
-    // TODO make a reload that not emit events
-    let index = this.findIndex(item), t = this[index];
-    this.removeAt(index);
-    this.put(index, t);
+  reload(item: T | Key) {
+    return this.reloadAt(this.findIndex(item));
+  }
+  /** volta a chamar o bind do elemento */
+  reloadAt(index: int): this;
+  reloadAt(start: int) {
+    return emit(this, "update", <UpdateEvent<T>>{ tp: "reload", start, items: [this[start]] });
   }
   reloadAll() {
-    // TODO make a reload that not emit events
-    this.set(this.slice());
+    return emit(this, "update", <UpdateEvent<T>>{ tp: "reload", start: 0, items: this.slice() });
   }
   /**events handlers*/
   eh: {
@@ -420,7 +430,7 @@ export type Alias<T = any, A = T> = Array<T | A> | L<T, A>;
 
 export function copy<S, D, A = S>(src: L<S, A>, dest: L<D>, fill = true, parse: (value: S, index: number) => D = v => v as any) {
   if (fill) dest.set(src.map(parse));
-  src.onupdate(e => {
+  src.on(e => {
     switch (e.tp) {
       case 'push':
         dest.put(e.start, ...e.items.map((v, i) => parse(v, e.start + i)));
@@ -483,10 +493,11 @@ export interface LBond<T = any, A = T, TS extends S = S> {
   /**inset an element in arbitrary position
    se retornar um valor inserira este elemento n�o posi��o do item adicionado*/
   insert?: LBondInsert<T, A, TS>;
+  reload?: (this: L<T, A>, value: T, index?: number, container?: TS) => any;
   /**
    * remove an arbitrary element
    * se retornar true remove o item naquela posi��o
-   * se n�o definido remove o item automaticamente
+   * se não definido remove o item automaticamente
    * @param this
    * @param pos
    */
@@ -510,7 +521,7 @@ export interface LBond<T = any, A = T, TS extends S = S> {
   empty?: (this: L<T, A>, empty: bool, container?: TS) => any;
   /**
    * */
-  groups?: Dic<GroupBind<T, TS>> | GroupBind<T, TS>;
+  groups?: Dic<GroupBind<T, A, TS>> | GroupBind<T, A, TS>;
   /** */
   tag?: (this: L<T, A>, active: bool, index: number, parent: TS, tag: str, value: T) => void;
 }
@@ -537,7 +548,6 @@ export function extend<T = any, A = T>(l?: Alias<T, A>, opts?: IList<T, A>) {
 
 export function orray<T = any, A = T>(options: IList<T, A>): L<T, A>;
 export function orray<T = any, A = T>(array?: L<T, A>, options?: Parse<T, A>): L<T, A>;
-export function orray<T = any, A = T>(array?: Array<T | A>, options?: IList<T, A>): L<T, A>;
 export function orray<T = any, A = T>(array?: Alias<T, A>, options?: IList<T, A>): L<T, A>;
 export function orray<T = any, A = T>(array?: Array<T | A> | IList<T, A> | L<T, A>, opts?: IList<T, A> | Parse<T, A>) {
   if (!opts && !isA(array)) {
@@ -686,8 +696,8 @@ export class Group<T> extends Array<T> implements EventObject<GroupEvents<T>> {
   }
   static get [Symbol.species]() { return Array; }
 }
-export type GroupBind<T, TS extends S> = (this: L<T>, state: boolean, index: number, parent: TS, groupKey: string, item: T) => void;
-export function bind<T, TS extends S = S, A = T>(l: L<T, A>, s: TS, groupKey: string, bond: GroupBind<T, TS>): TS {
+export type GroupBind<T, A = T, TS extends S = S> = (this: L<T, A>, state: boolean, index: number, parent: TS, groupKey: string, item: T) => void;
+export function bind<T, A = T, TS extends S = S>(l: L<T, A>, s: TS, groupKey: string, bond: GroupBind<T, A, TS>): TS {
   let g = l.g[groupKey];
   if (g) {
     let call = (items: T[], indexes: int[], state: bool) => {

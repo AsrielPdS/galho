@@ -1,9 +1,9 @@
-import type { EventObject, Options, EventTargetCallback } from "./event.js";
-import { emit, off, on } from "./event.js";
-import type { Properties as _p } from "csstype";
-import { Arr, Dic, str, falses, unk, bool, float, int, Key, is } from "./util.js";
-import { isA, isN, isO, isF, def, isS, isU, l, } from "./util.js";
+import type { Properties } from "csstype";
+import { EventObject, EventTargetCallback, Options, emit, off, on } from "./event.js";
+import { Arr, Dic, Key, bool, def, falsy, float, int, is, isA, isF, isN, isO, isS, isU, l, str, unk } from "./util.js";
 
+export { Properties } from "csstype";
+export type HTMLTag = keyof HTMLElementTagNameMap;
 type _ = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | EventTarget | S | Render;
 /**
 * create new element set props and append child
@@ -11,9 +11,9 @@ type _ = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | Element | Ev
 * @param props if is string or string array will the class if not will be set as props of created element 
 * @param childs elements, string, number or anything that can be append to an element
 */
-export function g<K extends keyof HTMLElementTagNameMap>(tagName: K, props?: Partial<HTMLElementTagNameMap[K]> | Arr<str> | falses, childs?: any): S<HTMLElementTagNameMap[K]>;
-export function g<T extends HSElement = HTMLElement>(element: Element | T | S<T> | Render<T>, props?: Partial<T> | Arr<str> | falses, childs?: any): S<T>;
-export function g<T extends HSElement = HTMLElement>(tagName: EventTarget, props?: Partial<T> | Arr<str> | falses, childs?: any): S<T>;
+export function g<K extends HTMLTag>(tagName: K, props?: Partial<HTMLElementTagNameMap[K]> | Arr<str> | falsy, childs?: any): S<HTMLElementTagNameMap[K]>;
+export function g<T extends HSElement = HTMLElement>(element: Element | T | S<T> | Render<T>, props?: Partial<T> | Arr<str> | falsy, childs?: any): S<T>;
+export function g<T extends HSElement = HTMLElement>(tagName: EventTarget, props?: Partial<T> | Arr<str> | falsy, childs?: any): S<T>;
 export function g(e: _, arg0: any, arg1: any) {
   if (!e) return null;
   let r = isS(e) ?
@@ -48,10 +48,10 @@ export type Tr = S<HTMLTableRowElement>;
 export type Input = S<HTMLInputElement>;
 
 export type Lazy<T> = (() => T) | T;
-export type Properties = _p & {
-  /**electron drag-region */
-  webkitAppRegion?: "drag" | "no-drag";
-};
+// export type Properties = _p & {
+//   /**electron drag-region */
+//   webkitAppRegion?: "drag" | "no-drag";
+// };
 export interface Render<T extends HSElement = HSElement> {
   render(): S<T>;
 }
@@ -99,7 +99,7 @@ export const id = () => 'i' + (_id++);
 /** create div element
 * @param props if is string or string array will the class if not will be set as props of created element 
 * @param childs elements, string, number or anything that can be append to an element */
-export function div(props?: falses | Arr<str> | Partial<HTMLDivElement>, childs?: any) {
+export function div(props?: falsy | Arr<str> | Partial<HTMLDivElement>, childs?: any) {
   let r = new S(document.createElement("div"))
   if (props)
     isS(props) ?
@@ -160,14 +160,11 @@ export function wrap<T extends HTMLElement = HTMLElement>(child: Wrap2, props?: 
   return child as any;
 }
 /** select first element that match query same as `document.querySelect` */
-export function get<T extends HSElement = HTMLElement>(selectors: string, ctx?: S | HSElement) {
-  let t = (ctx ? asE(ctx) : document).querySelector(selectors) as T;
-  return t && g(t) as S<T>;
-}
+export const get = <T extends HSElement = HTMLElement>(selectors: string, ctx?: S | HSElement) =>
+  g((ctx ? asE(ctx) : document).querySelector(selectors) as T) as S<T>;
 /** select all element that match query same as `document.querySelectAll` */
-export function getAll<T extends HSElement = HTMLElement>(selectors?: string, context?: S | HSElement) {
-  return new M(...Array.from((context ? asE(context) : document).querySelectorAll<T>(selectors)));
-}
+export const getAll = <T extends HSElement = HTMLElement>(selectors?: string, context?: S | HSElement) =>
+  new M(...Array.from((context ? asE(context) : document).querySelectorAll<T>(selectors)));
 /**fire event after specified amount of time */
 export function delay<T extends ANYElement, K extends keyof HTMLElementEventMap>(e: S<T>, action: K, delay: number, listener: (this: T, e: HTMLElementEventMap[K]) => any): S<T>;
 export function delay<T extends ANYElement, K extends keyof SVGElementEventMap>(e: S<T>, action: K, delay: number, listener: (this: T, e: SVGElementEventMap[K]) => any): S<T>;
@@ -272,9 +269,9 @@ export class S<T extends HSElement = HTMLElement> {
   }
   on(actions: HTMLEventMap<T>, options?: AddEventListenerOptions): this;
   on(actions: SVGEventMap<T>, options?: AddEventListenerOptions): this;
-  on<K extends keyof HTMLElementEventMap>(action: K, listener: ((this: T, e: HTMLElementEventMap[K]) => any) | falses, options?: AddEventListenerOptions): this;
-  on<K extends keyof SVGElementEventMap>(action: K, listener: ((this: T, e: SVGElementEventMap[K]) => any) | falses, options?: AddEventListenerOptions): this;
-  on<TT extends Element = Element, E extends Event = Event>(action: string, fn: EventHandler<TT, E> | falses, options?: AddEventListenerOptions): this;
+  on<K extends keyof HTMLElementEventMap>(action: K, listener: ((this: T, e: HTMLElementEventMap[K]) => any) | falsy, options?: AddEventListenerOptions): this;
+  on<K extends keyof SVGElementEventMap>(action: K, listener: ((this: T, e: SVGElementEventMap[K]) => any) | falsy, options?: AddEventListenerOptions): this;
+  on<TT extends Element = Element, E extends Event = Event>(action: string, fn: EventHandler<TT, E> | falsy, options?: AddEventListenerOptions): this;
   on<K extends keyof HTMLElementEventMap>(action: K[], listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): this;
   on(e, l?, o?) {
     if (isS(e)) {
@@ -406,6 +403,10 @@ export class S<T extends HSElement = HTMLElement> {
     this.add(child);
     return this;
   }
+  is<T extends S>(filter: T): this is T;
+  is<T extends HSElement>(filter: T): this is S<T>;
+  is<T extends HTMLTag>(filter: T): this is S<HTMLElementTagNameMap[T]>;
+  is(filter: string): bool
   is(filter: string | HSElement | S) {
     return isS(filter) ? this.e.matches(filter) : this.e == asE(filter);
   }
@@ -444,8 +445,10 @@ export class S<T extends HSElement = HTMLElement> {
   }
 
   replace(child: any) {
-    this.put('beforebegin', child);
-    this.remove();
+    // if (this.parent) {
+      this.put('beforebegin', child);
+      this.remove();
+    // }
     return this;
   }
 
@@ -459,7 +462,7 @@ export class S<T extends HSElement = HTMLElement> {
     return this;
   }
 
-  child<C extends HSElement = HSElement>(index: number): S<C>;
+  child<C extends HSElement = T>(index: number): S<C>;
   child<K extends keyof HTMLElementTagNameMap>(filter: K): S<HTMLElementTagNameMap[K]>;
   child(filter: string): S;
   child(filter: string | number) {
@@ -488,7 +491,6 @@ export class S<T extends HSElement = HTMLElement> {
         isF(filter) ? childs.filter(c => filter(new S(c))) :
           childs) as HTMLElement[]);
   }
-
   query<K extends keyof HTMLElementTagNameMap>(filter: K): S<HTMLElementTagNameMap[K]>;
   query<U extends HTMLElement | SVGElement = HTMLElement>(filter: string): S<U>;
   query(filter: string) {
@@ -520,9 +522,7 @@ export class S<T extends HSElement = HTMLElement> {
   p<K extends keyof T>(key: K): T[K];
   /**set property */
   p<K extends keyof T>(key: K, value: T[K]): this;
-  p(key: string, value: any): this;
   p(props: Partial<T>): this;
-  p<T = any>(key: string): T;
   p(props: Dic): this;
   p(a0: str | Dic, a1?: unk) {
     if (isS(a0))
@@ -566,10 +566,10 @@ export class S<T extends HSElement = HTMLElement> {
     return this;
   }
 
-  css<T extends keyof Properties>(property: T, important?: bool): string;
+  css<T extends keyof Properties>(property: T): string;
   css<T extends keyof Properties>(property: T, value: Properties[T], important?: bool): this;
-  css(styles: Properties): this;
-  css(k, v?, i?: bool) {
+  css(styles: Properties, important?: bool): this;
+  css(k: Properties | keyof Properties, v?, i?: bool) {
     let s = this.e.style;
     if (isS(k))
       if (isU(v))
@@ -578,7 +578,7 @@ export class S<T extends HSElement = HTMLElement> {
         s.setProperty(k.replace(cssPropRgx, m => "-" + m), v, i ? "important" : "");
     else
       for (let _ in k)
-        s.setProperty(_.replace(cssPropRgx, m => "-" + m), k[_], i ? "important" : "");
+        s.setProperty(_.replace(cssPropRgx, m => "-" + m), k[_], v ? "important" : "");
     return this;
   }
   uncss(): this;
@@ -676,8 +676,8 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
   css(props: Properties, important?: bool) {
     for (let i = 0; i < this.length; i++) {
       let t = this[i].style;
-      for (let css in props)
-        t.setProperty(css, props[css], important ? "important" : "");
+      for (let key in props)
+        t.setProperty(key.replace(cssPropRgx, m => "-" + m), props[key], important ? "important" : "");
     }
     return this;
   }
@@ -734,7 +734,7 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
       else
         isN(filter) ?
           (filter in item.children) && result.push(item.children[filter] as HSElement) :
-          result.push.apply(result, item.children);
+          result.push(...Array.from(item.children));
     return result;
   }
   next() {
@@ -751,6 +751,9 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
   eachS(callbackfn: (value: S<T>, index: number) => void) {
     this.forEach((value, index) => callbackfn(new S(value), index));
     return this;
+  }
+  push(...items: (T | Element | One<T> | keyof HTMLElementTagNameMap)[]) {
+    return super.push(...items.map(i => isD(i) ? i as T : g(i as One<T>).e));
   }
 }
 export interface M<T extends HSElement = HSElement> {
@@ -857,7 +860,7 @@ export abstract class E<I = {}, Events extends Dic<any[]> = {}> implements Rende
       if (!bond.prop || bond.prop in key)
         bond.handler.call(this, bond.e, key);
     }
-    this.emit('set', key as I);
+    emit(this, 'set', key as I);
     return this;
   }
   toggle(key: keyof I) {
@@ -892,8 +895,8 @@ export abstract class E<I = {}, Events extends Dic<any[]> = {}> implements Rende
 
     return on(this, "set", callback, options);
   }
-  bind<K extends keyof I, R extends Render>(e: R, handler: BindHandler<this, I, R>, prop?: K, noInit?: boolean): S;
-  bind<K extends keyof I, T extends HSElement>(s: S<T>, handler: BindHandler<this, I, S<T>>, prop?: K, noInit?: boolean): S<T>;
+  bind<R extends Render, K extends keyof I>(e: R, handler: BindHandler<this, I, R>, prop?: K, noInit?: bool): S;
+  bind<T extends HSElement, K extends keyof I>(s: S<T>, handler: BindHandler<this, I, S<T>>, prop?: K, noInit?: bool): S<T>;
   bind(element, handler, prop, noInit) {
     if ('render' in element) {
       this.bonds.push({ e: element, handler: handler, prop: prop });
