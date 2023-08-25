@@ -23,7 +23,7 @@ import ... from "https://cdn.jsdelivr.net/npm/galho@version/galho.min.js"
 or if you prefer this version will declare two global variable called `$` and `g` 
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/galho@version/galho.min.cjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/galho@version/galho-iife.min.js"></script>
 ```
 
 
@@ -86,7 +86,8 @@ import orray from "galho/orray.js";
 let list = orray(), input=g("input");
 
 get("body").add([
-    list.bind(g("ul"),e=>g("li", [e, g("button",0,"x").on("click",list.remove(e))])),
+    //bind list to created element "ul" i.e. for each change(add, remove, edit) that occur in list will be reflected in the element (ul)
+    list.bind(g("ul"),e=>g("li", [e, g("button",["x"]).on("click",list.remove(e))])),
     g("form", [
         input,
         g("button",{type:"submit"},"Adicionar").on("click",()=>{
@@ -148,9 +149,11 @@ getAll(".dropdown").do(dd=>dd
 ```js
 import { svg, get } from "galho";
 
-get("body").add(svg('svg', {
-  fill: "blue",  viewBox: "0 0 100 100",
-}, svg('path', { d: d.d })))
+get("body").add(svg('svg', { viewBox: "0 0 100 100" }, [
+    svg('rect', { fill: "blue", width: "100", height:"100" }),
+    svg('rect', { fill: "red", width: "50", height:"50" }),
+    svg('rect', { fill: "green", width:"25", height:"25" }),
+]))
 ```
 
 ### Simple Styling

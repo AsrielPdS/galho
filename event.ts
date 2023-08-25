@@ -1,5 +1,4 @@
-import { assign } from "./util.js";
-import type { bool, Dic, float, str } from "./util.js";
+import { assign, bool, Dic, float, str } from "./util.js";
 /**event arg */
 export interface Arg<T = any> {
   v: T;
@@ -19,6 +18,7 @@ export interface EventObject<T extends Dic<any[]> = any> {
   /**when true this object do not raise events */
   slip?: bool;
 }
+
 export function on<E extends EventObject>(e: E, event: str, callback: EventTargetCallback<E>, options?: Options): E {
   callback && (e.eh[event] ||= []).push(options ? assign(callback, options) : callback);
   return e;

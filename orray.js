@@ -1,5 +1,10 @@
 import { emit, on } from "./event.js";
 import { isA, isF, l } from "./util.js";
+/**
+ * An Array with suport for events, binds, subgroups and tags
+ * @template T type of element this array store
+ * @template A type of element this array accept
+ */
 export class L extends Array {
     put(start, ...values) {
         if (this.parse)

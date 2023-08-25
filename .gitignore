@@ -1,3 +1,6 @@
+/docs
+*.d.ts
+
 # Logs
 logs
 *.log

@@ -1,6 +1,14 @@
-﻿import type { EventObject, EventTargetCallback, Options } from "./event.js";
+﻿/**
+ * # Observable aRRAY
+ * 
+ * this is module have a collection of class and functions to help with list 
+ * with tasks like events, binds, subgroups and tags
+ * 
+ * @module
+ */
+import type { EventObject, EventTargetCallback, Options } from "./event.js";
 import { emit, on } from "./event.js";
-import type { S } from "./galho.js";
+import type { G } from "./galho.js";
 import type { Dic, Key, bool, int, str } from "./util.js";
 import { isA, isF, l } from "./util.js";
 
@@ -75,6 +83,11 @@ export type IList<T, A = T> = {
   sorts?: Exp[];
   clear?: bool;
 } | Parse<T, A>;
+/**
+ * An Array with suport for events, binds, subgroups and tags
+ * @template T type of element this array store
+ * @template A type of element this array accept
+ */
 export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<T>> {
   put(start: number, ...values: Array<T | A>) {
     if (this.parse)
@@ -304,7 +317,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     return this;
     //return on(l,<any>(), callback);
   }
-  unbind(s: S) {
+  unbind(s: G) {
     let b = this.binds;
     if (b) {
       let i = b.findIndex(b => b[0] == s);
@@ -314,9 +327,9 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     return this;
   }
 
-  bind<TS extends S = S>(s: TS, opts?: LBond<T, A, TS>): TS;
-  bind<TS extends S = S>(s: TS, opts?: LBondInsert<T, A, TS>): TS
-  bind<TS extends S = S>(s: TS, opts: LBondInsert<T, A, TS> | LBond<T, A, TS> = {}) {
+  bind<TS extends G = G>(s: TS, opts?: LBond<T, A, TS>): TS;
+  bind<TS extends G = G>(s: TS, opts?: LBondInsert<T, A, TS>): TS
+  bind<TS extends G = G>(s: TS, opts: LBondInsert<T, A, TS> | LBond<T, A, TS> = {}) {
     let bond = isF(opts) ? { insert: opts } : opts;
     let empty = (value: bool) => {
       if (bond.empty) {
@@ -423,7 +436,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
   key?: str//keyof T;
   childKey?: str;
   parse?: Parse<T, A>;
-  binds?: [s: S, fn: Function][];
+  binds?: [s: G, fn: Function][];
 }
 export type Alias<T = any, A = T> = Array<T | A> | L<T, A>;
 
@@ -484,12 +497,12 @@ export function editItems<T, A = T>(l: L<T, A>, ...items: T[]): L<T, A> {
   return l;
 }
 
-export type LBondInsert<T, A = T, TS extends S = S> = (this: L<T, A>, value: T, index?: number, container?: TS) => any;
+export type LBondInsert<T, A = T, TS extends G = G> = (this: L<T, A>, value: T, index?: number, container?: TS) => any;
 
-export interface LBond<T = any, A = T, TS extends S = S> {
+export interface LBond<T = any, A = T, TS extends G = G> {
   /**
    * metodo que sera chamado no clear, caso n�ot tenha removera um item de cada vez*/
-  clear?: false | ((container: S) => void);
+  clear?: false | ((container: G) => void);
   /**inset an element in arbitrary position
    se retornar um valor inserira este elemento n�o posi��o do item adicionado*/
   insert?: LBondInsert<T, A, TS>;
@@ -509,7 +522,7 @@ export interface LBond<T = any, A = T, TS extends S = S> {
    * @param props
    * @param container
    */
-  edit?: (this: L<T, A>, item: T, index: number, props: Partial<T>, container: S) => S | void;
+  edit?: (this: L<T, A>, item: T, index: number, props: Partial<T>, container: G) => G | void;
   /**chamado quando tenta se reposicionar um elemento */
   place?: (this: L<T, A>, oldPlace: number, newPlace: number, container: TS) => bool | void;
   /**
@@ -696,8 +709,8 @@ export class Group<T> extends Array<T> implements EventObject<GroupEvents<T>> {
   }
   static get [Symbol.species]() { return Array; }
 }
-export type GroupBind<T, A = T, TS extends S = S> = (this: L<T, A>, state: boolean, index: number, parent: TS, groupKey: string, item: T) => void;
-export function bind<T, A = T, TS extends S = S>(l: L<T, A>, s: TS, groupKey: string, bond: GroupBind<T, A, TS>): TS {
+export type GroupBind<T, A = T, TS extends G = G> = (this: L<T, A>, state: boolean, index: number, parent: TS, groupKey: string, item: T) => void;
+export function bind<T, A = T, TS extends G = G>(l: L<T, A>, s: TS, groupKey: string, bond: GroupBind<T, A, TS>): TS {
   let g = l.g[groupKey];
   if (g) {
     let call = (items: T[], indexes: int[], state: bool) => {

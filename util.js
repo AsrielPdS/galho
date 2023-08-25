@@ -18,18 +18,7 @@ export const isP = (value) => value && isF(value.then);
 export const isA = (value) => Array.isArray(value);
 export const wait = (ms) => new Promise(r => setTimeout(r, ms));
 export const assign = Object.assign;
-export function extend(obj, extension, override) {
-    for (let key in extension) {
-        let e = extension[key];
-        isU(e) || ((override || isU(obj[key])) && (obj[key] = e));
-    }
-    return obj;
-}
 export const clone = (v) => assign({}, v);
-export function delay(index, cb, time) {
-    clearTimeout(index);
-    return setTimeout(cb, time);
-}
 /**toString, obs null and undefined return an ""(empty string) */
 export const toStr = (v) => v == null ? v + "" : "";
 /**return def if value is undefined */

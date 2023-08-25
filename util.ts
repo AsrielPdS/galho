@@ -42,18 +42,7 @@ export const isP = (value: any): value is PromiseLike<any> => value && isF(value
 export const isA = <T = any>(value: any): value is T[] => Array.isArray(value);
 export const wait = (ms?: int) => new Promise(r => setTimeout(r, ms));
 export const assign: { <T>(t: T, ...s: Partial<T>[]): T } & typeof Object.assign = Object.assign;
-export function extend<T extends object, U = Partial<T>>(obj: T, extension: U, override?: bool) {
-  for (let key in extension) {
-    let e = extension[key];
-    isU(e) || ((override || isU(obj[key as any])) && (obj[key as any] = e));
-  }
-  return obj as T & U;
-}
 export const clone = <T>(v: T) => assign({}, v) as T;
-export function delay(index: number, cb: Function, time?: float): number {
-  clearTimeout(index);
-  return setTimeout(cb, time);
-}
 /**toString, obs null and undefined return an ""(empty string) */
 export const toStr = (v: unk) => v == null ? v + "" : "";
 /**return def if value is undefined */

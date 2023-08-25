@@ -1,3 +1,9 @@
 tsconfig.json
 gulpfile.js
 .vscode
+/docs
+event.ts
+galho.ts
+orray.ts
+util.ts
+typedoc.json

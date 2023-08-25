@@ -4,62 +4,63 @@ export function g(e, arg0, arg1) {
     if (!e)
         return null;
     let r = isS(e) ?
-        new S(document.createElement(e)) :
+        new G(document.createElement(e)) :
         'render' in e ?
             e.render() :
-            is(e, S) ? e : new S(e);
+            is(e, G) ? e : new G(e);
     if (arg0)
         isS(arg0) ?
             isS(e) ?
                 r.attr("class", arg0) :
                 r.c(arg0) :
-            isA(arg0) ?
-                r.c(arg0) :
+            isA(arg0) || isF(arg0) ?
+                r.add(arg0) :
                 r.p(arg0);
     arg1 != null && r.add(arg1);
     return r;
 }
 export default g;
 export const m = (...elements) => new M(...elements);
-// #endregion
-// #region --------- utility -----------------------
-let _id = 0;
-export const id = () => 'i' + (_id++);
-/** create div element
-* @param props if is string or string array will the class if not will be set as props of created element
-* @param childs elements, string, number or anything that can be append to an element */
-export function div(props, childs) {
-    let r = new S(document.createElement("div"));
-    if (props)
-        isS(props) ?
-            r.attr("class", props) :
-            isA(props) ?
-                r.c(props) :
-                r.p(props);
-    childs != null && r.add(childs);
+export function div(arg0, arg1) {
+    let r = new G(document.createElement("div"));
+    if (arg0)
+        isS(arg0) ?
+            r.attr("class", arg0) :
+            isA(arg0) || isF(arg0) ?
+                r.add(arg0) :
+                r.p(arg0);
+    arg1 != null && r.add(arg1);
     return r;
 }
+const cssPropRgx = /[A-Z]/g;
 /**html empty char */
 export const empty = '&#8203;';
-/**get dom active element */
+/**get `document.activeElement` */
 export const active = () => g(document.activeElement);
+/** @ignore */
 export const isE = (v) => v.e && v.e?.nodeType === 1;
-/** convert @type {S<any>} to dom element */
+/** convert to DOM Element @ignore */
 export const asE = (v) => v.e ? v.e : v;
 /** check if dom element */
 const isD = (v) => v.nodeType === 1;
-/**create an html element */
+/**create an element using ns:`http://www.w3.org/1999/xhtml` */
 export function html(tag, props, child) {
     return g(document.createElementNS('http://www.w3.org/1999/xhtml', tag), props, child);
 }
-/**create an svg element */
+/**
+ * create an svg element
+ * @param tag
+ * @param attrs
+ * @param child
+ * @returns
+ */
 export function svg(tag, attrs, child) {
-    var s = new S(document.createElementNS('http://www.w3.org/2000/svg', tag));
+    var s = new G(document.createElementNS('http://www.w3.org/2000/svg', tag));
     if (attrs)
         if (isS(attrs) || isA(attrs))
             s.c(attrs);
         else
-            s.attrs(attrs);
+            s.attr(attrs);
     if (child || child === 0)
         s.add(child);
     return s;
@@ -67,44 +68,44 @@ export function svg(tag, attrs, child) {
 /**convert html string to svg element */
 export function toSVG(text) {
     let parser = new DOMParser(), doc = parser.parseFromString(text, "image/svg+xml");
-    return new S(doc.firstChild);
+    return new M(...Array.from(doc.children));
 }
 export function onfocusout(e, handler) {
     handler && e.on('focusout', ev => e.contains(ev.relatedTarget) || handler.call(e, ev));
     return e;
 }
-export function wrap(child, props, tag) {
-    if (isF(child))
-        child = child();
-    if (isF(child?.render))
-        child = child.render();
-    if (child instanceof Element)
-        child = new S(child);
-    else if (!(child instanceof S))
-        child = g(tag || "div", 0, child);
-    props && g(child, props);
-    return child;
+export function wrap(c, p, tag) {
+    if (isF(c))
+        c = c();
+    if (isF((c)?.render))
+        c = c.render();
+    if (c instanceof Element)
+        c = new G(c);
+    else if (!(c instanceof G))
+        c = g(tag || "div", 0, c);
+    p && g(c, p);
+    return c;
 }
 /** select first element that match query same as `document.querySelect` */
-export const get = (selectors, ctx) => g((ctx ? asE(ctx) : document).querySelector(selectors));
+export const get = (selectors) => g(document.querySelector(selectors));
 /** select all element that match query same as `document.querySelectAll` */
-export const getAll = (selectors, context) => new M(...Array.from((context ? asE(context) : document).querySelectorAll(selectors)));
+export const getAll = (selectors) => new M(...Array.from(document.querySelectorAll(selectors)));
 export function delay(e, event, time, handler) {
     handler = handler.bind(e.e);
     return e.on(event, function (e) {
-        var t = `_${event}_timer`;
+        var t = `__${event}`;
         clearTimeout(this[t]);
         this[t] = setTimeout(handler, time, e);
     });
 }
-/** stopImmediatePropagation and preventDefault from Event */
+/** wrap for stopImmediatePropagation and preventDefault on Event */
 export function clearEvent(e) {
     e.stopImmediatePropagation();
     e.preventDefault();
 }
-const cssPropRgx = /[A-Z]/g;
 export function css(props, s, defSub = " ") {
-    let subs = [">", " ", ":", "~", "+"], r = "", subSel = "", split;
+    let subs = [">", " ", ":", "~", "+"];
+    let r = "", subSel = "", split;
     function sub(parent, child) {
         return child.split(',')
             .map(s => parent.map(p => {
@@ -132,11 +133,12 @@ export function css(props, s, defSub = " ") {
     }
     return (r ? s + "{" + r + "}" : "") + subSel;
 }
-export const rgba = (r, g, b, a) => `rgba(${r},${g},${b},${a})`;
-export const rgb = (r, g, b) => `rgb(${r},${g},${b})`;
 // #endregion
 // #region ----------main structures ----------------------
-export class S {
+/**
+ * A Wrapper for an HTML OR SVG Element
+ */
+export class G {
     e;
     constructor(e) { this.e = e; }
     static empty;
@@ -145,29 +147,33 @@ export class S {
     }
     get parent() {
         let e = this.e.parentElement;
-        return e && new S(e);
+        return e && new G(e);
     }
+    /**get previus element sibling */
     get prev() {
         let e = this.e.previousElementSibling;
-        return e && new S(e);
+        return e && new G(e);
     }
+    /**get next element sibling */
     get next() {
         let e = this.e.nextElementSibling;
-        return e && new S(e);
+        return e && new G(e);
     }
-    /**first child */
+    /**first children element */
     get first() {
         let e = this.e.firstElementChild;
-        return e && new S(e);
+        return e && new G(e);
     }
-    /**last child */
+    /**last children element */
     get last() {
         let e = this.e.lastElementChild;
-        return e && new S(e);
+        return e && new G(e);
     }
     /**get bounding client rect */
     get rect() { return this.e.getBoundingClientRect(); }
+    /** @ignore */
     toJSON() { }
+    /** check if `this` contains `child` */
     contains(child) {
         return child ? this.e.contains(asE(child)) : false;
     }
@@ -200,11 +206,15 @@ export class S {
         this.e.dispatchEvent(isS(event) ? new Event(event, init) : event);
         return this;
     }
+    /**remove event listener */
     off(event, listener) {
         for (let e of isS(event) ? [event] : event)
             this.e.removeEventListener(e, listener);
         return this;
     }
+    /** insert adjacent content to `this`
+     * @param child can be any valid content
+    */
     put(position, child) {
         switch (typeof child) {
             case 'object':
@@ -238,16 +248,8 @@ export class S {
     after(child) {
         return this.put('afterend', child);
     }
-    /**@deprecated */
-    putAfter(child) {
-        return this.put('afterend', child);
-    }
     /**insert adjacent before begin */
     before(child) {
-        return this.put('beforebegin', child);
-    }
-    /**@deprecated */
-    putBefore(child) {
         return this.put('beforebegin', child);
     }
     putText(pos, text) {
@@ -258,6 +260,7 @@ export class S {
         this.e.insertAdjacentHTML(pos, html);
         return this;
     }
+    /**append child */
     add(child) {
         switch (typeof child) {
             case 'object':
@@ -286,26 +289,34 @@ export class S {
     }
     /**(begin add) add child at begin of element */
     badd(child) { return this.put('afterbegin', child); }
-    /**@deprecated */
-    prepend(child) { return this.badd(child); }
-    place(index, child) {
+    /**
+     * insert content at an specified index
+     * @throws `invalid index` if index is outside [0, `children.length`[
+     * @param index
+     * @param content
+     * @returns `this`
+     */
+    place(index, content) {
         if (!index)
-            return this.badd(child);
+            return this.badd(content);
         var c = this.e.children, temp = c[index < 0 ? c.length + index : index - 1];
         if (!temp)
-            throw "out of flow";
-        new S(temp).put('afterend', child);
+            throw "invalid index";
+        new G(temp).put('afterend', content);
         return this;
     }
+    /**remove child at an specified index @returns `this` */
     unplace(index) {
         this.e.children[index].remove();
+        return this;
     }
     addHTML(html) {
         return this.putHTML("beforeend", html);
     }
-    set(child) {
+    /**clear content and append new content */
+    set(content) {
         this.e.textContent = '';
-        this.add(child);
+        this.add(content);
         return this;
     }
     is(filter) {
@@ -324,6 +335,9 @@ export class S {
         this.e.textContent = v;
         return this;
     }
+    /** add `this` to another element
+     * @param parent element to insert into
+     */
     addTo(parent) {
         asE(parent).appendChild(this.e);
         return this;
@@ -356,23 +370,23 @@ export class S {
         if (isS(filter)) {
             for (let i = 0; i < childs.length; i++) {
                 if ((child = childs[i]).matches(filter))
-                    return new S(child);
+                    return new G(child);
             }
             return null;
         }
         else if (isN(filter))
-            return (child = childs[filter < 0 ? l(childs) + filter : filter]) ? new S(child) : null;
+            return (child = childs[filter < 0 ? l(childs) + filter : filter]) ? new G(child) : null;
     }
     childs(filter, to) {
         let childs = Array.from(this.e.children);
         return new M(...(isS(filter) ? childs.filter(c => c.matches(filter)) :
             isN(filter) ? childs.slice(filter, to) :
-                isF(filter) ? childs.filter(c => filter(new S(c))) :
+                isF(filter) ? childs.filter(c => filter(new G(c))) :
                     childs));
     }
     query(filter) {
         let e = this.e.querySelector(filter);
-        return e && new S(e);
+        return e && new G(e);
     }
     queryAll(filter) {
         return new M(...Array.from(this.e.querySelectorAll(filter)));
@@ -388,7 +402,7 @@ export class S {
         return l;
     }
     clone(deep) {
-        return new S(this.e.cloneNode(deep));
+        return new G(this.e.cloneNode(deep));
     }
     p(a0, a1) {
         if (isS(a0))
@@ -397,25 +411,8 @@ export class S {
             else
                 this.e[a0] = a1;
         else
-            for (let key in a0) {
-                let v = a0[key];
-                isU(v) || (this.e[key] = v);
-            }
-        return this;
-    }
-    prop(props, value) {
-        if (arguments.length == 1) {
-            return this.e[props];
-        }
-        else
-            this.e[props] = value;
-        return this;
-    }
-    props(props) {
-        for (let key in props) {
-            let v = props[key];
-            isU(v) || (this.e[key] = v);
-        }
+            for (let key in a0)
+                this.e[key] = a0[key];
         return this;
     }
     call(key, ...args) {
@@ -434,10 +431,10 @@ export class S {
                 s.setProperty(_.replace(cssPropRgx, m => "-" + m), k[_], v ? "important" : "");
         return this;
     }
-    uncss(properties) {
-        if (properties)
-            for (let i = 0; i < properties.length; i++)
-                this.e.style[properties[i]] = "";
+    uncss(...p) {
+        if (p.length)
+            for (let i = 0; i < p.length; i++)
+                this.e.style[p[i]] = "";
         else
             this.e.removeAttribute('style');
         return this;
@@ -447,10 +444,6 @@ export class S {
             this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, (isS(names) ? names.trim().split(' ') : names).filter(n => n));
         return this;
     }
-    cls(names, set) {
-        this.e.classList[set === false ? 'remove' : 'add'].apply(this.e.classList, (isS(names) ? names.trim().split(' ') : names).filter(n => n));
-        return this;
-    }
     /**toggle class */
     tcls(names) {
         for (let n of names.split(' '))
@@ -458,33 +451,26 @@ export class S {
                 this.e.classList.toggle(n);
         return this;
     }
-    hasClass(name) {
-        return this.e.classList.contains(name);
-    }
     attr(attr, value) {
-        if (isU(value)) {
-            return this.e.getAttribute(attr);
-        }
-        else if (value === false)
-            this.e.removeAttribute(attr);
-        else
-            this.e.setAttribute(attr, value === true ? '' : value);
-        return this;
-    }
-    attrs(attrs) {
-        for (let key in attrs) {
-            let value = attrs[key];
-            if (value === false)
-                this.e.removeAttribute(key);
+        let fn = (k, v) => v === false ?
+            this.e.removeAttribute(k) :
+            this.e.setAttribute(k, v === true ? '' : v);
+        if (isS(attr)) {
+            if (isU(value)) {
+                return this.e.getAttribute(attr);
+            }
             else
-                this.e.setAttribute(key, value === true ? '' : value);
+                fn(attr, value);
         }
+        else
+            for (let key in attr)
+                fn(key, attr[key]);
         return this;
     }
     d(data) {
         let e = this.e;
         if (isU(data))
-            return def(e._d, (e = e.parentElement) && new S(e).d());
+            return def(e._d, (e = e.parentElement) && new G(e).d());
         e._d = data;
         return this;
     }
@@ -493,6 +479,9 @@ export class S {
         return this;
     }
 }
+/**
+ * Represent Multiples {@link Element} have part of the functions of  {@link G} but applied to multple element at once
+ */
 export class M extends Array {
     constructor(...elements) {
         if (isN(elements[0]))
@@ -500,7 +489,7 @@ export class M extends Array {
         else
             super(...elements.map(i => "e" in i ? i.e : i));
     }
-    e(i) { return new S(this[i]); }
+    e(i) { return new G(this[i]); }
     on(event, listener, options) {
         for (let i = 0; i < this.length; i++)
             this[i].addEventListener(event, listener, options);
@@ -570,27 +559,27 @@ export class M extends Array {
     }
     do(cb) {
         for (let i = 0; i < this.length; i++)
-            cb(new S(this[i]), i);
+            cb(new G(this[i]), i);
         return this;
     }
     eachS(callbackfn) {
-        this.forEach((value, index) => callbackfn(new S(value), index));
+        this.forEach((value, index) => callbackfn(new G(value), index));
         return this;
     }
     push(...items) {
-        return super.push(...items.map(i => isD(i) ? i : g(i).e));
+        return super.push(...items.map(i => g(i).e));
     }
 }
-export class E {
-    /**interface */
-    i;
+export class Component {
+    /**properties */
+    p;
     $;
-    bonds;
+    #bonds;
     validators;
     constructor(i) {
-        this.bonds = [];
+        this.#bonds = [];
         this.eh = {};
-        this.i = i || {};
+        this.p = i || {};
     }
     focus() {
         this.$.focus();
@@ -611,16 +600,7 @@ export class E {
             this.$.remove();
             delete this.$;
         }
-        this.bonds.length = 0;
-    }
-    reRender() {
-        this.dispose();
-        return this.render();
-    }
-    removeKey(key) {
-        if (isS(key))
-            delete this.i[key];
-        return this;
+        this.#bonds.length = 0;
     }
     addValidators(field, validator) {
         var _a, _b;
@@ -636,7 +616,7 @@ export class E {
         return true;
     }
     set(key, value) {
-        let dt = this.i;
+        let dt = this.p;
         if (isO(key)) {
             if (isA(key)) {
                 let t = {};
@@ -666,7 +646,7 @@ export class E {
             dt[key] = value;
             key = { [key]: value };
         }
-        for (let i = 0, b = this.bonds; i < b.length; i++) {
+        for (let i = 0, b = this.#bonds; i < b.length; i++) {
             let bond = b[i];
             if (!bond.prop || bond.prop in key)
                 bond.handler.call(this, bond.e, key);
@@ -675,10 +655,10 @@ export class E {
         return this;
     }
     toggle(key) {
-        return this.set(key, !this.i[key]);
+        return this.set(key, !this.p[key]);
     }
     clone() {
-        return new this.constructor(this.i);
+        return new this.constructor(this.p);
     }
     eh;
     on(event, callback, options) {
@@ -701,42 +681,23 @@ export class E {
     }
     bind(element, handler, prop, noInit) {
         if ('render' in element) {
-            this.bonds.push({ e: element, handler: handler, prop: prop });
+            this.#bonds.push({ e: element, handler: handler, prop: prop });
             if (!noInit)
-                handler.call(this, element, this.i);
+                handler.call(this, element, this.p);
             return element.render();
         }
         else {
-            this.bonds.push({ e: element, handler: handler, prop: prop });
+            this.#bonds.push({ e: element, handler: handler, prop: prop });
             if (!noInit)
-                handler.call(this, element, this.i);
+                handler.call(this, element, this.p);
             return element;
         }
     }
     unbind(s) {
-        var i = this.bonds.findIndex(b => b.e.e == s.e || s == b.e);
+        var i = this.#bonds.findIndex(b => b.e.e == s.e || s == b.e);
         if (i != -1)
-            this.bonds.splice(i, 1);
+            this.#bonds.splice(i, 1);
     }
     toJSON() { }
 }
 // #endregion
-/**@deprecated */
-class CL extends Array {
-    push(...cls) {
-        for (let t of cls) {
-            if (t)
-                for (let t2 of isS(t) ? t.split(' ') : t)
-                    if (t2)
-                        super.push(t2);
-        }
-        return this.length;
-    }
-}
-/**@deprecated */
-export function cl(...cls) {
-    let c = new CL;
-    if (cls.length)
-        c.push(...cls);
-    return c;
-}
