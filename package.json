@@ -1,6 +1,6 @@
 {
   "name": "galho",
-  "version": "3.0.14",
+  "version": "3.0.15",
   "description": "galho is js library for create and manipulate dom elements without need to compiling or VirtualDom",
   "main": "galho.js",
   "homepage": "https://github.com/AsrielPires/galho",

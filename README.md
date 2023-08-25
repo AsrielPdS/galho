@@ -17,13 +17,13 @@ React, Svelte and other modern tools are for a lot of small and medium size proj
 ### with cdn
 
 ```js
-import ... from "https://cdn.jsdelivr.net/npm/galho@version/galho.min.js"
+import ... from "https://cdn.jsdelivr.net/npm/galho/galho.min.js"
 ```
 
 or if you prefer this version will declare two global variable called `$` and `g` 
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/galho@version/galho-iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/galho/galho-iife.min.js"></script>
 ```
 
 
