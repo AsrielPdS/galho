@@ -1,4 +1,4 @@
-galho is js library for create and manipulate dom elements without need to compiling or VirtualDom
+galho is js library for create and manipulate dom elements without need compiling, configuration or VirtualDom
 
 ## Why?
 
@@ -66,7 +66,7 @@ get("#list")
     .c("new-class")
     //remove class
     .c("old-class",false)
-    //get all childs
+    //get all children elements
     .childs()
     //add event listener to all childs
     .on("click",()=>alert("Clicked!"))

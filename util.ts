@@ -66,13 +66,13 @@ export const filter: {
 /**get length of array */
 export const l = (a: ArrayLike<any>) => a.length;
 export const arr = <T>(v: T | T[]): T[] => isA(v) ? v : v === undefined ? [] : [v];
-export function iByKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: K = "key" as any, i = 0) {
+export function iByKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: K, i = 0) {
   for (; i < arr.length; i++)
     if (name === arr[i][key])
       return i;
   return -1;
 }
-export function byKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: K = "key" as any, i = 0): T {
+export function byKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: K, i = 0): T {
   for (; i < arr.length; i++)
     if (name === arr[i][key])
       return arr[i];
@@ -85,4 +85,4 @@ export function set<T, K extends keyof T>(o: T, key: K, val: T[K]) {
   return o;
 }
 export const notImp = () => new Error("not implemented");
-export const notF = (key: Key, itemTp?: str, src?: str, srcTp?: str) => new Error(`${itemTp || 'item'} '${key}' not found` + (src ? ` in '${src}' ${srcTp || ""}` : ''));
+export const notF = (key: Key, itemTp?: str, src?: any, srcTp?: str) => new Error(`${itemTp || 'item'} '${key}' not found` + (src ? ` in '${src}' ${srcTp || ""}` : ''));

@@ -8,8 +8,9 @@ export { Properties } from "csstype";
 export type HTMLTag = keyof HTMLElementTagNameMap;
 export type SVGTag = keyof SVGElementTagNameMap;
 export type HSElement = HTMLElement | SVGElement;
-export type One<T extends HSElement = HTMLElement> = G<T> | Render<G<T>>;
+export type One<T extends HSElement = HTMLElement> = T | G<T> | Render<G<T>>;
 
+export type Content<T> = bool | falsy | T | PromiseLike<Content<T>> | (() => Content<T>);
 export interface Render<T = any> {
   render(): T;
 }
@@ -71,16 +72,16 @@ export function g<K extends HTMLTag>(tagName: K, properties: Partial<HTMLElement
 * @param properties an object contain properties (not attributes) to assigned to it.
 * @param content elements, string, number, function, PromiseLike or anything that can be append to an element. true, false, null and undefined will be ignored
 */
-export function g<T extends HTMLElement = HTMLElement>(element: Element | T | One<T>, properties: Partial<T>, content?: any): G<T>;
+export function g<T extends HTMLElement = HTMLElement>(element: Element | One<T>, properties: Partial<T>, content?: any): G<T>;
 /**
  * 
  * @param element 
  * @param className 
  * @param content 
  */
-export function g<T extends HTMLElement = HTMLElement>(element: Element | T | One<T>, className?: str | falsy, content?: any): G<T>;
+export function g<T extends HTMLElement = HTMLElement>(element: Element | One<T>, className?: str | falsy, content?: any): G<T>;
 
-export function g<T extends HTMLElement = HTMLElement>(element: Element | T | One<T>, content: any[] | (() => any)): G<T>;
+export function g<T extends HTMLElement = HTMLElement>(element: Element | One<T>, content: any[] | (() => any)): G<T>;
 
 export function g(e: HTMLTag | Element | One, arg0?: any[] | (() => any) | str | falsy | Partial<HTMLElement>, arg1?: any) {
   if (!e) return null;
@@ -566,16 +567,17 @@ export class G<T extends HSElement = HTMLElement> {
   p<K extends keyof T>(key: K): T[K];
   /**set property */
   p<K extends keyof T>(key: K, value: T[K]): this;
-  /**set multiple properties undefined value are ignored */
-  p(props: Partial<T>): this;
-  p(props: Dic): this;
-  p(a0: str | Dic, a1?: unk) {
+  /**set multiple properties undefined value are ignored if `keepUndefined` is set to `false` or not defined*/
+  p(props: Partial<T>, keepUndefined?: bool): this;
+  p(a0: str | Partial<T>, a1?: unk) {
     if (isS(a0))
       if (isU(a1))
         return this.e[a0];
       else this.e[a0] = a1;
-    else for (let key in a0)
-      this.e[key] = a0[key];
+    else for (let key in a0) {
+      let v = a0[key];
+      if (!(a1 || isU(v))) this.e[key] = v;
+    }
     return this;
   }
   call<K extends keyof T>(key: K, ...args: any[]) {
@@ -773,7 +775,7 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
     this.forEach((value, index) => callbackfn(new G(value), index));
     return this;
   }
-  push(...items: (T | Element | One<T> | keyof HTMLElementTagNameMap)[]) {
+  push(...items: (Element | One<T> | keyof HTMLElementTagNameMap)[]) {
     return super.push(...items.map(i => g(i as T).e as T));
   }
 }
@@ -787,10 +789,10 @@ export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HS
   /**properties */
   p: P;
   $: G<T>;
-  #bonds: { prop, handler(s: One, p: P): void, e: G | Render }[];
+  // #bonds: { prop, handler(s: One, p: P): void, e: G | Render }[];
   validators: Dic<Array<(value: any, field: any) => boolean | void>>;
   constructor(i?: P) {
-    this.#bonds = [];
+    // this.#bonds = [];
     this.eh = {};
     this.p = i || {} as P;
   }
@@ -804,7 +806,8 @@ export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HS
       let view = this.view();
       this.$ = (view ?
         'render' in view ?
-          view.render() : view :
+          view.render() : isE(view) ?
+            view : new G(view) :
         null);
     }
     return this.$;
@@ -814,7 +817,7 @@ export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HS
       this.$.remove();
       delete this.$;
     }
-    this.#bonds.length = 0;
+    // this.#bonds.length = 0;
   }
   addValidators<K extends keyof P>(field: K, validator: (value: P[K], field: K) => boolean | void) {
     var _a, _b;
@@ -862,11 +865,11 @@ export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HS
       dt[key] = value;
       key = { [key]: value };
     }
-    for (let i = 0, b = this.#bonds; i < b.length; i++) {
-      let bond = b[i];
-      if (!bond.prop || bond.prop in key)
-        bond.handler.call(this, bond.e, key);
-    }
+    // for (let i = 0, b = this.#bonds; i < b.length; i++) {
+    //   let bond = b[i];
+    //   if (!bond.prop || bond.prop in key)
+    //     bond.handler.call(this, bond.e, key);
+    // }
     emit(this, 'set', key as P);
     return this;
   }
@@ -902,24 +905,29 @@ export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HS
   }
   bind<R extends Render, K extends keyof P>(e: R, handler: (this: this, s: R, p: P) => void, prop?: K, noInit?: bool): G;
   bind<T extends HSElement, K extends keyof P>(s: G<T>, handler: (this: this, s: G<T>, p: P) => void, prop?: K, noInit?: bool): G<T>;
-  bind(element, handler, prop, noInit) {
-    if ('render' in element) {
-      this.#bonds.push({ e: element, handler: handler, prop: prop });
-      if (!noInit)
-        handler.call(this, element, this.p);
-      return element.render();
-    } else {
-      this.#bonds.push({ e: element, handler: handler, prop: prop });
-      if (!noInit)
-        handler.call(this, element, this.p);
-      return element;
-    }
+  bind(e, handler, p, noInit) {
+    let cb: EventTargetCallback<this, [Partial<P>]> = () => handler.call(this, e, this.p);
+    if (p) cb.check = props => p in props;
+    if (!noInit) (cb as any)();
+    this.on(cb);
+    return 'render' in e ? e.render() : e;
+    // if ('render' in e) {
+    //   this.#bonds.push({ e: e, handler: handler, prop: prop });
+    //   if (!noInit)
+    //     handler.call(this, e, this.p);
+    //   return e.render();
+    // } else {
+    //   this.#bonds.push({ e: e, handler: handler, prop: prop });
+    //   if (!noInit)
+    //     handler.call(this, e, this.p);
+    //   return e;
+    // }
   }
-  unbind(s: One) {
-    var i = this.#bonds.findIndex(b => (b.e as G).e == (s as G).e || (s as Render) == b.e as Render);
-    if (i != -1)
-      this.#bonds.splice(i, 1);
-  }
+  // unbind(s: One) {
+  //   var i = this.#bonds.findIndex(b => (b.e as G).e == (s as G).e || (s as Render) == b.e as Render);
+  //   if (i != -1)
+  //     this.#bonds.splice(i, 1);
+  // }
   private toJSON() { }
 }
 // #endregion

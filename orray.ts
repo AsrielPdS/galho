@@ -88,7 +88,7 @@ export type IList<T, A = T> = {
  * @template T type of element this array store
  * @template A type of element this array accept
  */
-export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<T>> {
+export class L<T = any, A = T, K extends keyof T = any> extends Array<T> implements EventObject<EventMap<T>> {
   put(start: number, ...values: Array<T | A>) {
     if (this.parse)
       for (let i = 0; i < values.length; i++) {
@@ -219,7 +219,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
       return false;
     } else return super.includes(searchElement as T, fromIndex)
   }
-  addGroup(key: str): Group<T> {
+  addGroup(key: str): Group<T, K> {
     // t.key = key;
     let t = this.g[key] = new Group();
     t.eh = {};
@@ -229,7 +229,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
   /**
    * get a group from id if it not exist create new
    */
-  group(key: str): Group<T> {
+  group(key: str): Group<T, K> {
     return this.g[key] || this.addGroup(key);
   }
 
@@ -250,8 +250,8 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     return super.find(isF(arg1) ? arg1 : (v => v === arg1 || v[this.key] == arg1), arg2) as any;
   }
   findIndex(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): number;
-  findIndex(key: T | Key): number;
-  findIndex(arg1: Key | T | ((v: T, i: number, o: T[]) => any), arg2?: any) {
+  findIndex(key: T | K): number;
+  findIndex(arg1: K | T | ((v: T, i: number, o: T[]) => any), arg2?: any) {
     return super.findIndex(isF(arg1) ? arg1 : (v => v === arg1 || v[this.key] == arg1), arg2)
   }
   sort(compareFn?: (a: T, b: T) => number) {
@@ -259,7 +259,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     this.set(this.slice().sort(compareFn));
     return this;
   }
-  remove(...items: (Key | T)[]) {
+  remove(...items: (K | T)[]) {
     for (let item of items) {
       let i = this.findIndex(item);
       if (i >= 0)
@@ -267,7 +267,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     }
     return this;
   }
-  place(item: Key | T, newIndex: number) {
+  place(item: K | T, newIndex: number) {
     let oldIndex = this.findIndex(item);
     let t = this[oldIndex];
     this.removeAt(oldIndex);
@@ -278,10 +278,10 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
   /**get tag */
   tag(key: str): T;
   /**set tag */
-  tag(key: str, value: T | Key, replace?: bool): this
+  tag(key: str, value: T | K, replace?: bool): this
   /**remove tag */
   tag(key: str, value: null): this;
-  tag(k: str, v?: T | Key, replace?: bool) {
+  tag(k: str, v?: T | K, replace?: bool) {
     let i = null, t = this.tags ||= {}, o = t[k], n: Tag<T>;
     switch (v) {
       case undefined:
@@ -410,7 +410,7 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
     insert(this, 0);
     return s;
   }
-  reload(item: T | Key) {
+  reload(item: T | K) {
     return this.reloadAt(this.findIndex(item));
   }
   /** volta a chamar o bind do elemento */
@@ -430,10 +430,10 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
   tags?: Dic<Tag<T>>;
   sorts?: Exp[];
   /**groups */
-  g: Dic<Group<T>>;
+  g: Dic<Group<T, K>>;
   /**no update */
   nu?: bool;
-  key?: str//keyof T;
+  key?: K;
   childKey?: str;
   parse?: Parse<T, A>;
   binds?: [s: G, fn: Function][];
@@ -441,7 +441,9 @@ export class L<T = any, A = T> extends Array<T> implements EventObject<EventMap<
 export type Alias<T = any, A = T> = Array<T | A> | L<T, A>;
 
 
-export function copy<S, D, A = S>(src: L<S, A>, dest: L<D>, fill = true, parse: (value: S, index: number) => D = v => v as any) {
+export function copy<S>(src: L<S, any>, dest: L<S, any>, fill?: bool): void;
+export function copy<S, D, A = D>(src: L<S, any>, dest: L<D, A>, fill: bool, parse: (value: S, index: number) => D | A): void;
+export function copy<S, D, A = D>(src: L<S, any>, dest: L<D, A>, fill = true, parse: (value: S, index: number) => D = v => v as any) {
   if (fill) dest.set(src.map(parse));
   src.on(e => {
     switch (e.tp) {
@@ -460,7 +462,7 @@ export function copy<S, D, A = S>(src: L<S, A>, dest: L<D>, fill = true, parse: 
   });
 }
 export function tryPush<T, A = T>(l: L<T, A>, item: T) {
-  let k = item[l.key];
+  let k = item[l.key] as any;
   if (l.find(v => v[l.key] == k))
     edit(l, { item: k, props: item });
   else
@@ -595,7 +597,7 @@ interface GroupEvents<T = any> extends Dic<any[]> {
   set: GroupSetEvent<T>;
 };
 export type GroupSetEvent<T> = [add?: T[], addId?: int[], remove?: T[], removeId?: int[]];
-function gpush<T>(g: Group<T>, items: (T | Key)[]) {
+function gpush<T, K extends keyof T>(g: Group<T, K>, items: (T | K)[]) {
   let indices: int[] = [], start = g.length;
   for (let i = 0; i < items.length; i++) {
     let item = items[i], index = g.l.findIndex(item);
@@ -614,13 +616,13 @@ function gpush<T>(g: Group<T>, items: (T | Key)[]) {
   }
   return indices;
 }
-export class Group<T> extends Array<T> implements EventObject<GroupEvents<T>> {
+export class Group<T, K extends keyof T> extends Array<T> implements EventObject<GroupEvents<T>> {
   eh: { [P in keyof GroupEvents<T>]?: EventTargetCallback<this, GroupEvents<T>[P]>[] } = {};
   slip?: boolean;
   /**no update */
   nu?: boolean;
   l: L<T, any>;
-  push(...items: (T | Key)[]) {
+  push(...items: (T | K)[]) {
     gpush(this, items);
     return this.length;
   }
@@ -672,7 +674,7 @@ export class Group<T> extends Array<T> implements EventObject<GroupEvents<T>> {
     return this.remove(...this.l.slice(from, to));
   }
 
-  set(add: (T | Key)[]) {
+  set(add: (T | K)[]) {
     if (!l(add) && !l(this))
       return;
     this.nu = true;
@@ -696,12 +698,12 @@ export class Group<T> extends Array<T> implements EventObject<GroupEvents<T>> {
     return r;
   }
   keyField() {
-    for (var key = this.l.key, r: Key[] = [], i = 0; i < this.length; i++)
+    for (var key = this.l.key, r: K[] = [], i = 0; i < this.length; i++)
       r.push(this[i][key]);
     return r;
   }
   /**on update */
-  on(callback: EventTargetCallback<Group<T>, GroupSetEvent<T>>) {
+  on(callback: EventTargetCallback<Group<T, K>, GroupSetEvent<T>>) {
     return on(this, "set", callback)
   }
   reload(v: T, i = this.l.indexOf(v)) {
@@ -796,7 +798,7 @@ export namespace range {
     l.g[tag] && l.g[tag].clear();
     return l;
   }
-  export function onchange<T, A = T>(l: L<T, A>, tag: str, listener?: (this: L<T, A>, active: T, selected?: Group<T>) => void) {
+  export function onchange<T, A = T, K extends keyof T = any>(l: L<T, A>, tag: str, listener?: (this: L<T, A>, active: T, selected?: Group<T, K>) => void) {
     let g = l.g[tag];
     g ? g.on(() => {
       let t = tg(l, tag);
