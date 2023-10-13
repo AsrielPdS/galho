@@ -1,3 +1,5 @@
+# galho
+
 galho is js library for create and manipulate dom elements without need compiling, configuration or VirtualDom
 
 ## Why?
@@ -162,15 +164,15 @@ get("body").add(svg('svg', { viewBox: "0 0 100 100" }, [
 import { css, get } from "galho";
 
 // create css
-let style=css({
+let style = css({
     h1: {
         fontSize:"20px"
     },
-    ".bt":{
-        background:"#28C",
-        border:"solid 1px #6AE",
-        ":hover": { background:"#39D" },
-        ":active":{ background:"#59E" },
+    ".bt": {
+        background: "#28C",
+        border: "solid 1px #6AE",
+        ":hover":  { background:"#39D" },
+        ":active": { background:"#59E" },
     },
 });
 //query for head element and apend an style element with css created above

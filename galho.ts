@@ -691,7 +691,10 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
       this[i].addEventListener(event, listener, options);
     return this;
   }
-  emit(event: Event) {
+  emit(name: keyof HTMLElementEventMap | keyof SVGElementEventMap, event?: EventInit): this;
+  emit(event: Event): this;
+  emit(event: Event | str, init?: EventInit) {
+    if (isS(event)) event = new Event(event, init);
     for (let i = 0, l = this.length; i < l; i++)
       this[i].dispatchEvent(event);
     return this;
@@ -731,7 +734,6 @@ export class M<T extends HSElement = HSElement> extends Array<T>{
     return this;
   }
   p<K extends keyof T>(prop: K, value: T[K]): this
-  p(prop: string, value: any): this
   p(prop: string, value: any) {
     for (let i = 0; i < this.length; i++)
       this[i][prop] = value;
