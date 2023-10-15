@@ -199,16 +199,16 @@ export class L<T = any, A = T, K extends keyof T = any> extends Array<T> impleme
     emit(this, 'update', { tp: 'set', items: this, removed });
     return this;
   }
-  has(id: Key, fromIndex = 0) {
+  has(id: T[K], fromIndex = 0) {
     for (; fromIndex < this.length; fromIndex++) {
       if (this[fromIndex][this.key] === id)
         return true;
     }
     return false;
   }
-  includes(searchElement: Key, fromIndex?: number): boolean
+  includes(searchElement: T[K], fromIndex?: number): boolean
   includes(searchElement: T, fromIndex?: number): boolean
-  includes(searchElement: T | Key, fromIndex?: number): boolean {
+  includes(searchElement: T | T[K], fromIndex?: number): boolean {
     let k = this.key;
     if (k) {
       for (fromIndex = 0; fromIndex < this.length; fromIndex++) {
@@ -245,9 +245,9 @@ export class L<T = any, A = T, K extends keyof T = any> extends Array<T> impleme
 
   find<S extends T>(predicate: (value: T, index: number, obj: T[]) => value is S, thisArg?: any): S | undefined;
   find(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): T | undefined;
-  find(key: T | Key): T | undefined;
-  find(arg1: ((v: T, i: number, o: T[]) => any) | T | Key, arg2?: any) {
-    return super.find(isF(arg1) ? arg1 : (v => v === arg1 || v[this.key] == arg1), arg2) as any;
+  find(key: T | T[K]): T | undefined;
+  find(arg1: ((v: T, i: number, o: T[]) => any) | T | T[K], arg2?: any) {
+    return super.find(isF(arg1) ? arg1 : (v => v === arg1 || (v && v[this.key] == arg1 as T[K])), arg2) as any;
   }
   findIndex(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): number;
   findIndex(key: T | K): number;
@@ -770,6 +770,7 @@ export namespace range {
               n = t
             }
             g.setRange(o, n);
+            break;
           case Tp.addRange:
             if (o > n) {
               let t = o;
@@ -777,7 +778,6 @@ export namespace range {
               n = t
             }
             g.pushRange(o, n);
-            break;
         }
     }
     return l;

@@ -8,13 +8,23 @@
       "DOM"
     ],
     "declaration": true,
-    "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "importHelpers": false,
     "moduleResolution": "Node",
     "noImplicitThis": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    
+    /* Linting */
+    // "strict": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    // "strictNullChecks": true,
+    // "strictPropertyInitialization": true,
+    "useUnknownInCatchVariables": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
   "exclude": [
     "node_modules"

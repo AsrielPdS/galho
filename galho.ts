@@ -1,6 +1,6 @@
 import type { Properties } from "csstype";
 import { EventObject, EventTargetCallback, Options, emit, off, on } from "./event.js";
-import { Arr, Dic, Key, bool, def, falsy, int, is, isA, isF, isN, isO, isS, isU, l, str, unk } from "./util.js";
+import { AnyDic, Arr, Dic, Key, bool, def, falsy, int, is, isA, isF, isN, isO, isS, isU, l, str, unk } from "./util.js";
 
 export { Properties } from "csstype";
 
@@ -787,7 +787,7 @@ export interface M<T extends HSElement = HSElement> {
 }
 
 export type BindHandler<T, P, B> = (this: T, s: B, p: P) => void;
-export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HSElement = HTMLElement> implements Render<G<T>>, EventObject<Ev & { set: [P]; }> {
+export abstract class Component<P = {}, Ev extends AnyDic<any[]> = {}, T extends HSElement = HTMLElement> implements Render<G<T>>, EventObject<Ev & { set: [P]; }> {
   /**properties */
   p: P;
   $: G<T>;
@@ -892,7 +892,7 @@ export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HS
     return on(this, event, callback, options);
   }
   off<K extends keyof Ev | 'set'>(event: K, callback?: EventTargetCallback<this, (Ev & { set: [P] })[K]>) {
-    return off(this, event as string, callback);
+    return off(this, event, callback as EventTargetCallback<this>);
   }
   emit(event: "set", arg: P): this;
   emit<K extends keyof Ev>(event: K, ...args: Ev[K]): this;
@@ -930,6 +930,8 @@ export abstract class Component<P = {}, Ev extends Dic<any[]> = {}, T extends HS
   //   if (i != -1)
   //     this.#bonds.splice(i, 1);
   // }
+
+  //@ts-ignore
   private toJSON() { }
 }
 // #endregion

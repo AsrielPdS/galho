@@ -23,7 +23,8 @@ export function on<E extends EventObject>(e: E, event: str, callback: EventTarge
   callback && (e.eh[event] ||= []).push(options ? assign(callback, options) : callback);
   return e;
 }
-export function off<E extends EventObject>(e: E, event: str, callback?: EventTargetCallback<E>) {
+export function off<E extends EventObject>(e: E, event: PropertyKey, callback?: EventTargetCallback<E>): E
+export function off<E extends EventObject>(e: E, event: any, callback?: EventTargetCallback<E>) {
   if (event in e.eh)
     if (callback) {
       let stack = e.eh[event];
