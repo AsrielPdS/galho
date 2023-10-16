@@ -53,7 +53,7 @@ export const def = <T, D = T>(value: T, def: D): T | D => isU(value) ? def : val
 /**returns true if value is not false ie.(value===false) t stands for true*/
 export const t = (value: unknown): bool => value !== false;
 export const call = <T>(v: T, cb: (v: T) => any): T => (cb(v), v);
-export const sub = <T, K extends keyof T>(arr: Array<T>, key: K): (T[K] | undefined |null)[] => arr.map(v => v?.[key]);
+export const sub = <T, K extends keyof T>(arr: Array<T>, key: K): (T[K] | null)[] => arr.map(v => v ? v[key] : null);
 export const distinct = <T>(arr: Array<T>) => arr.filter((f, i) => {
   return arr.indexOf(f, i + 1) == -1;
 });
