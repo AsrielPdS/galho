@@ -733,12 +733,7 @@ export function bind<T, A = T, TS extends G = G>(l: L<T, A>, s: TS, groupKey: st
 //#endregion
 
 export namespace range {
-  export const enum Tp {
-    set = 0,
-    add = 1,
-    range = 2,
-    addRange = add | range
-  }
+  export type Tp = "set" | "add" | "range" | "addR";
   const clamp = (value: int, min: int, max: int) => value < min ? min : value >= max ? max - 1 : value;
   const tg = (l: L, k: str) => (l.tags ||= {})[k];
   export function pivot<T, A = T>(l: L<T, A>, tag: str) {
@@ -757,13 +752,13 @@ export namespace range {
       l.tag(key, value);
       if (g)
         switch (tp) {
-          case Tp.set:
+          case "set":
             g.set([l[n]]);
             break;
-          case Tp.add:
+          case "add":
             g.push(l[n]);
             break;
-          case Tp.range:
+          case "range":
             if (o > n) {
               let t = o;
               o = n;
@@ -771,7 +766,7 @@ export namespace range {
             }
             g.setRange(o, n);
             break;
-          case Tp.addRange:
+          case "addR":
             if (o > n) {
               let t = o;
               o = n;
@@ -807,14 +802,14 @@ export namespace range {
     return l;
   }
   /**select type */
-  export const tp = (control: boolean, shift: boolean) =>
+  export const tp = (control: boolean, shift: boolean): Tp =>
     control ?
       shift ?
-        Tp.addRange :
-        Tp.add :
+        "addR" :
+        "add" :
       shift ?
-        Tp.range :
-        Tp.set;
+        "range" :
+        "set";
 
   export function move(l: L, tag: str, distance: number, tp: Tp) {
     return add(l, tag, l[clamp(pivot(l, tag) + distance, 0, l.length)], tp);
