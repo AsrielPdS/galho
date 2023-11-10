@@ -2,7 +2,7 @@ import type { Properties } from "csstype";
 import { EventObject, EventTargetCallback, Options, emit, off, on } from "./event.js";
 import { AnyDic, Arr, Dic, Key, bool, def, falsy, int, is, isA, isF, isN, isO, isS, isU, l, str, unk } from "./util.js";
 
-export { Properties } from "csstype";
+export type { Properties } from "csstype";
 
 // #region --------- interfices -----------------------
 export type HTMLTag = keyof HTMLElementTagNameMap;
@@ -10,7 +10,8 @@ export type SVGTag = keyof SVGElementTagNameMap;
 export type HSElement = HTMLElement | SVGElement;
 export type One<T extends HSElement = HTMLElement> = T | G<T> | Render<G<T>>;
 
-export type Content<T> = bool | falsy | T | PromiseLike<Content<T>> | (() => Content<T>);
+export type NotRender = bool | null | undefined | "";
+export type Content<T> = NotRender | T | PromiseLike<Content<T>> | (() => Content<T>);
 export interface Render<T = any> {
   render(): T;
 }

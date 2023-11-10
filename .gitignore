@@ -1,8 +1,7 @@
+
 /docs
 *.d.ts
 *.js
-!galho-iife.min.js
-!galho.min.js
 !tasks.js
 
 # Logs
