@@ -24,12 +24,6 @@
     "email": "bebether@gmail.com"
   },
   "type": "module",
-  "devDependencies": {
-    "rollup": "",
-    "@rollup/plugin-terser": "",
-    "@rollup/plugin-virtual": "",
-    "typedoc": "^0.24.8"
-  },
   "optionalDependencies": {
     "csstype": "*"
   }

@@ -81,7 +81,8 @@ export function byKey<T, K extends keyof T>(arr: ArrayLike<T>, name: T[K], key: 
       return arr[i];
   return null;
 }
-export const create = <T extends Object, A extends any[] = any[]>(constructor: new (...a: A) => T, obj: Partial<T>, ...a: A): T => assign(new constructor(...a), obj);
+export type Constructor<T extends Object, A extends any[] = any[]> = new (...a: A) => T
+export const create = <T extends Object, A extends any[] = any[]>(constructor: Constructor<T, A>, obj: Partial<T>, ...a: A): T => assign(new constructor(...a), obj);
 export const json = JSON.stringify;
 export function set<T, K extends keyof T>(o: T, key: K, val: T[K]) {
   o[key] = val;

@@ -1,8 +1,8 @@
 import type { Properties } from "csstype";
 import { EventObject, EventTargetCallback, Options, emit, off, on } from "./event.js";
-import { AnyDic, Arr, Dic, Key, bool, def, falsy, int, is, isA, isF, isN, isO, isS, isU, l, str, unk } from "./util.js";
+import { AnyDic, Arr, Dic, Key, bool, def, falsy, filter, int, is, isA, isF, isN, isO, isS, isU, l, str, unk } from "./util.js";
 
-export type { Properties } from "csstype";
+export type { Properties, Property } from "csstype";
 
 // #region --------- interfices -----------------------
 export type HTMLTag = keyof HTMLElementTagNameMap;
@@ -104,7 +104,7 @@ export function g(e: HTMLTag | Element | One, arg0?: any[] | (() => any) | str |
   return r;
 }
 export default g;
-export const m = <T extends HSElement = HSElement>(...elements: (G<T> | T)[]) =>
+export const m = <T extends HSElement = HSElement>(...elements: (G<T> | T | falsy)[]) =>
   new M(...elements);
 
 
@@ -175,7 +175,7 @@ export function wrap<T extends HSElement = HTMLElement>(content: any, properties
 export function wrap<T extends HSElement = HTMLElement>(content: any, properties?: falsy | str, tag?: keyof HTMLElementTagNameMap): G<T>
 export function wrap<T extends HSElement = HTMLElement>(c: any, p?: falsy | str | Partial<T>, tag?: keyof HTMLElementTagNameMap): G<T> {
   if (isF(c)) c = c();
-  if (isF((c)?.render)) c = c.render();
+  if (isF(c?.render)) c = c.render();
   if (c instanceof Element) c = new G(c);
   else if (!(c instanceof G))
     c = g(tag || "div", 0, c);
@@ -677,12 +677,12 @@ export class G<T extends HSElement = HTMLElement> {
  * Represent Multiples {@link Element} have part of the functions of  {@link G} but applied to multple element at once
  */
 export class M<T extends HSElement = HSElement> extends Array<T>{
-  constructor(...elements: (G<T> | T)[])
+  constructor(...elements: (G<T> | T | falsy)[])
   constructor(lenght: int)
-  constructor(...elements: (G<T> | T)[]) {
+  constructor(...elements: (G<T> | T | falsy)[]) {
     if (isN(elements[0]))
       super(elements[0]);
-    else super(...elements.map(i => "e" in i ? i.e : i as T));
+    else super(...filter(elements).map(i => "e" in i ? i.e : i as T));
   }
   e(i: number) { return new G(this[i]); }
   on<K extends keyof HTMLElementEventMap>(action: K, listener: (this: T, e: HTMLElementEventMap[K]) => any, options?: AddEventListenerOptions): M<T>;
@@ -906,7 +906,7 @@ export abstract class Component<P = {}, Ev extends AnyDic<any[]> = {}, T extends
 
     return on(this, "set", callback, options);
   }
-  bind<R extends Render, K extends keyof P>(e: R, handler: (this: this, s: R, p: P) => void, prop?: K, noInit?: bool): G;
+  bind<R extends Render, K extends keyof P>(e: R, handler: (this: this, s: R, p: Partial<P>) => void, prop?: K, noInit?: bool): G;
   bind<T extends HSElement, K extends keyof P>(s: G<T>, handler: (this: this, s: G<T>, p: P) => void, prop?: K, noInit?: bool): G<T>;
   bind(e, handler, p, noInit) {
     let cb: EventTargetCallback<this, [Partial<P>]> = () => handler.call(this, e, this.p);
