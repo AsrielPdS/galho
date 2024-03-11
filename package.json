@@ -1,6 +1,6 @@
 {
   "name": "galho",
-  "version": "3.0.21",
+  "version": "3.0.23",
   "description": "galho is js library for create and manipulate dom elements without need compiling, configuration or VirtualDom",
   "main": "galho.js",
   "homepage": "https://github.com/AsrielPdS/galho",
@@ -24,7 +24,7 @@
     "email": "asrielpds@gmail.com"
   },
   "type": "module",
-  "optionalDependencies": {
+  "dependencies": {
     "csstype": "*"
   }
 }
