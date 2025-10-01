@@ -10,9 +10,13 @@ export type HTDiv = HTMLDivElement;
 export type HTTd = HTMLTableCellElement;
 export type HTUl = HTMLUListElement;
 export type HTOl = HTMLOListElement;
+export type HTForm = HTMLFormElement;
 export type HTInputs = HTInput | HTTextArea | HTSelect;
 
 export type GTr = G<HTTr>;
+export type GUl = G<HTUl>;
+export type GOl = G<HTOl>;
+export type GForm = G<HTForm>;
 export type GInput = G<HTInput>;
 export type GDiv = G<HTDiv>;
 export type HTButton = HTMLButtonElement;

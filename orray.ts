@@ -333,22 +333,25 @@ export class L<T = any, A = T, K extends keyof T = any> extends Array<T> impleme
     let bond = isF(opts) ? { insert: opts } : opts;
     let empty = (value: bool) => {
       if (bond.empty) {
-        let v = bond.empty.call(this, value);
+        let v = bond.empty.call(this, value, s);
         if (v)
-          s.set(value);
+          s.set(v);
       }
-    }, insert = (items: T[], start: int) => {
+    };
+    let insert = (items: T[], start: int) => {
       for (let i = 0; i < items.length; i++) {
         let item = items[i], v = bond.insert ? bond.insert.call(this, item, start + i, s) : item;
         if (v)
           s.place(start + i, v);
       }
-    }, remove = (items: T[], start: int) => {
+    };
+    let remove = (items: T[], start: int) => {
       for (let i = 0; i < items.length; i++) {
         if (bond.remove ? bond.remove.call(this, items[i], start + i, s) : true)
           s.unplace(start + i);
       }
-    }, fn = (opts: UpdateEvent<T>) => {
+    };
+    let fn = (opts: UpdateEvent<T>) => {
       switch (opts.tp) {
         case 'push':
           if (this.length == opts.items.length)
@@ -407,7 +410,9 @@ export class L<T = any, A = T, K extends keyof T = any> extends Array<T> impleme
           bind(this, s, g, bond.groups[g]);
 
     (this.binds ||= []).push([s, fn]);
-    insert(this, 0);
+    if (l(this))
+      insert(this, 0);
+    else empty(true);
     return s;
   }
   reload(item: T | K) {
@@ -811,6 +816,7 @@ export namespace range {
         "range" :
         "set";
 
+  export const eTp = (e: MouseEvent): Tp => tp(e.ctrlKey, e.shiftKey);
   export function move(l: L, tag: str, distance: number, tp: Tp) {
     return add(l, tag, l[clamp(pivot(l, tag) + distance, 0, l.length)], tp);
   }

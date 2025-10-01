@@ -207,15 +207,16 @@ export function clearEvent(e: Event) {
   e.preventDefault();
 }
 
+export type CSSSep = ">" | " " | ":" | "~" | "+";
 /** simple style builder */
-export function css(props: Style, selector?: string, defSubSelector?: str): str;
-export function css(props: Style, s?: string, defSub = " ") {
-  let subs = [">", " ", ":", "~", "+"];
+export function css(props: Style, defSubSelector?: CSSSep, selector?: string): str;
+export function css(props: Style, defSub: CSSSep = " ", s?: string) {
+  let subs: CSSSep[] = [">", " ", ":", "~", "+"];
   let r = "", subSel = "", split: string[];
   function sub(parent: string[], child: string) {
     return child.split(',')
       .map(s => parent.map(p => {
-        if (subs.indexOf(s[0]) != -1)
+        if (subs.indexOf(s[0] as CSSSep) != -1)
           return p + s;
         if (s.includes("&"))
           return s.replaceAll("&", p);
@@ -224,14 +225,14 @@ export function css(props: Style, s?: string, defSub = " ") {
   }
   if (!s || s[0] == '@') {
     for (let k in props)
-      r += css(props[k], k, defSub);
+      r += css(props[k], defSub, k);
     return r ? s ? s + "{" + r + "}" : r : '';
   }
   for (let key in props) {
     let val = props[key];
     if (val || val === 0) {
       if (isO(val)) {
-        subSel += css(val, sub(split || (split = s.split(',')), key), defSub);
+        subSel += css(val, defSub, sub(split || (split = s.split(',')), key));
       }
       else
         r += key.replace(cssPropRgx, m => "-" + m.toLowerCase()) + ":" + val + ";";
@@ -273,12 +274,12 @@ export class G<T extends HSElement = HTMLElement> {
   }
   /**first children element */
   get first() {
-    let e = this.e.firstElementChild as T;
+    let e = this.e.firstElementChild as HTMLElement;
     return e && new G(e);
   }
   /**last children element */
   get last() {
-    let e = this.e.lastElementChild as T;
+    let e = this.e.lastElementChild as HTMLElement;
     return e && new G(e);
   }
   /**get bounding client rect */
@@ -676,7 +677,7 @@ export class G<T extends HSElement = HTMLElement> {
 /**
  * Represent Multiples {@link Element} have part of the functions of  {@link G} but applied to multple element at once
  */
-export class M<T extends HSElement = HSElement> extends Array<T>{
+export class M<T extends HSElement = HSElement> extends Array<T> {
   constructor(...elements: (G<T> | T | falsy)[])
   constructor(lenght: int)
   constructor(...elements: (G<T> | T | falsy)[]) {
