@@ -9,14 +9,13 @@
     ],
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
+    "module": "node16",
     "importHelpers": false,
-    "moduleResolution": "Node",
+    "moduleResolution": "node16",
     "noImplicitThis": true,
     "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
     
-    /* Linting */
-    // "strict": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     // "strictNullChecks": true,
@@ -24,7 +23,8 @@
     "useUnknownInCatchVariables": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "strict": false
   },
   "exclude": [
     "node_modules"

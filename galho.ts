@@ -1,6 +1,8 @@
 import type { Properties } from "csstype";
-import { EventObject, EventTargetCallback, Options, emit, off, on } from "./event.js";
-import { AnyDic, Arr, Dic, Key, bool, def, falsy, filter, int, is, isA, isF, isN, isO, isS, isU, l, str, unk } from "./util.js";
+import type { EventObject, EventTargetCallback, Options } from "./event.js";
+import { emit, off, on } from "./event.js";
+import type { AnyDic, Arr, Dic, Key, bool, falsy, int, str, unk } from "./util.js";
+import { def, filter, is, isA, isF, isN, isO, isS, isU, l } from "./util.js";
 
 export type { Properties, Property } from "csstype";
 

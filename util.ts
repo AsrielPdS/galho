@@ -47,7 +47,7 @@ export const wait = (ms?: int) => new Promise(r => setTimeout(r, ms));
 export const assign: { <T>(t: T, ...s: Partial<T>[]): T } & typeof Object.assign = Object.assign;
 export const clone = <T>(v: T) => assign({}, v) as T;
 /**toString, obs null and undefined return an ""(empty string) */
-export const toStr = (v: unk) => v == null ? v + "" : "";
+export const toStr = (v: unk) => v == null ? "" : v + "";
 /**return def if value is undefined */
 export const def = <T, D = T>(value: T, def: D): T | D => isU(value) ? def : value;
 /**returns true if value is not false ie.(value===false) t stands for true*/
@@ -89,4 +89,4 @@ export function set<T, K extends keyof T>(o: T, key: K, val: T[K]) {
   return o;
 }
 export const notImp = () => new Error("not implemented");
-export const notF = (key: Key, itemTp?: str, src?: any, srcTp?: str) => new Error(`${itemTp || 'item'} '${key}' not found` + (src ? ` in '${src}' ${srcTp || ""}` : ''));
+export const notF = (key: Key, itemTp?: str, src?: any, srcTp?: str) => `${itemTp || 'item'} '${key}' not found` + (src ? ` in '${src}' ${srcTp || ""}` : '');
