@@ -7,24 +7,35 @@ import { def, filter, is, isA, isF, isN, isO, isS, isU, l } from "./util.js";
 export type { Properties, Property } from "csstype";
 
 // #region --------- interfices -----------------------
+/** Valid HTML tag names */
 export type HTMLTag = keyof HTMLElementTagNameMap;
+/** Valid SVG tag names */
 export type SVGTag = keyof SVGElementTagNameMap;
+/** HTMLElement or SVGElement */
 export type HSElement = HTMLElement | SVGElement;
+/** Type representing an element, its G wrapper, or a Render object */
 export type One<T extends HSElement = HTMLElement> = T | G<T> | Render<G<T>>;
 
+/** Type representing values that are ignored during rendering */
 export type NotRender = bool | null | undefined | "";
+/** Type representing renderable content, promise of content, or factory function returning content */
 export type Content<T> = NotRender | T | PromiseLike<Content<T>> | (() => Content<T>);
+/** Interface representing an object that can render a target wrapper */
 export interface Render<T = any> {
   render(): T;
 }
+/** Event listener map for HTML elements */
 export type HTMLEventMap<T> = {
   [K in keyof HTMLElementEventMap]?: (this: T, e: HTMLElementEventMap[K]) => any;
 };
+/** Event listener map for SVG elements */
 export type SVGEventMap<T> = {
   [K in keyof SVGElementEventMap]?: (this: T, e: SVGElementEventMap[K]) => any;
 };
 
+/** Dictionary mapping class names to styles */
 export type Styles = Dic<Style>;
+/** Interface representing inline style properties and pseudo-classes */
 export type Style = Properties | Styles | {
   ":hover": Style;
   ":active": Style;
@@ -106,6 +117,10 @@ export function g(e: HTMLTag | Element | One, arg0?: any[] | (() => any) | str |
   return r;
 }
 export default g;
+/**
+ * Create a new M wrapper for multiple HSElement instances
+ * @param elements HTML or SVG elements, or their G wrappers
+ */
 export const m = <T extends HSElement = HSElement>(...elements: (G<T> | T | falsy)[]) =>
   new M(...elements);
 
@@ -140,7 +155,12 @@ export const asE = <T extends HSElement>(v: T | G<T>) => (v as G).e ? (v as G).e
 /** check if dom element */
 const isD = (v: any): v is HSElement => v.nodeType === 1;
 
-/**create an element using ns:`http://www.w3.org/1999/xhtml` */
+/**
+ * Create an HTML element using XHTML namespace
+ * @param tag HTML tag name
+ * @param props Properties/attributes to assign
+ * @param child Child elements or content
+ */
 export function html<T extends keyof HTMLElementTagNameMap>(tag: T, props?: string | Partial<HTMLElement>, child?: any) {
   return g(document.createElementNS('http://www.w3.org/1999/xhtml', tag), props, child);
 }
@@ -168,11 +188,22 @@ export function toSVG<T extends SVGElement = SVGElement>(text: string): M<T> {
   return new M(...Array.from(doc.children) as T[]);
 }
 
+/**
+ * Attach a focusout event listener that triggers only when focus leaves the element boundary
+ * @param e G wrapper element
+ * @param handler Event handler function
+ */
 export function onfocusout(e: G, handler: (e: FocusEvent) => any) {
   handler && e.on('focusout', ev => e.contains(ev.relatedTarget as HTMLElement) || handler.call(e, ev));
   return e;
 }
 
+/**
+ * Wrap content inside a G wrapper of specified element tag
+ * @param c Content to wrap
+ * @param p Element properties or class name
+ * @param tag HTML tag name to create if content is not already an element
+ */
 export function wrap<T extends HSElement = HTMLElement>(content: any, properties: Partial<T>, tag?: keyof HTMLElementTagNameMap): G<T>
 export function wrap<T extends HSElement = HTMLElement>(content: any, properties?: falsy | str, tag?: keyof HTMLElementTagNameMap): G<T>
 export function wrap<T extends HSElement = HTMLElement>(c: any, p?: falsy | str | Partial<T>, tag?: keyof HTMLElementTagNameMap): G<T> {
@@ -203,12 +234,15 @@ export function delay(e: any, event: any, time: number, handler: (e: Event) => a
     this[t] = setTimeout(handler, time, e);
   });
 }
-/** wrap for stopImmediatePropagation and preventDefault on Event */
+/** Prevent default event behavior and stop immediate propagation of an event
+ * @param e DOM Event instance
+ */
 export function clearEvent(e: Event) {
   e.stopImmediatePropagation();
   e.preventDefault();
 }
 
+/** CSS selector separators */
 export type CSSSep = ">" | " " | ":" | "~" | "+";
 /** simple style builder */
 export function css(props: Style, defSubSelector?: CSSSep, selector?: string): str;
@@ -790,7 +824,9 @@ export interface M<T extends HSElement = HSElement> {
   slice: (start?: number, end?: number) => M<T>;
 }
 
+/** Callback function type for binding properties to components */
 export type BindHandler<T, P, B> = (this: T, s: B, p: P) => void;
+/** Base class representing a custom UI Component */
 export abstract class Component<P = {}, Ev extends AnyDic<any[]> = {}, T extends HSElement = HTMLElement> implements Render<G<T>>, EventObject<Ev & { set: [P]; }> {
   /**properties */
   p: P;

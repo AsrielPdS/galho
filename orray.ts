@@ -1,4 +1,4 @@
-﻿/**
+/**
  * # Observable aRRAY
  * 
  * this is module have a collection of class and functions to help with list 
@@ -26,11 +26,13 @@ export interface Tag<T = any> {
   i: number;
   replace: bool;
 }
+/** Event data for list element placement changes */
 export interface ListPlaceEvent<T> {
   old: int;
   new: int;
   item: T;
 }
+/** Update event type for lists */
 export type UpdateEvent<T> = {
   tp: "push";
   items: T[];
@@ -57,6 +59,7 @@ export type UpdateEvent<T> = {
   start: int;
   items: T[];
 };
+/** Event map for List event handlers */
 export interface EventMap<T> extends Dic<any[]> {
   update: [UpdateEvent<T>];
   push: [T[]];
@@ -64,15 +67,18 @@ export interface EventMap<T> extends Dic<any[]> {
   pop: [T[]];
   place: [ListPlaceEvent<T>];
 }
+/** Object containing list item edit properties */
 export interface ListEditItem<T = Dic> {
   item: Key | T;
   props: Partial<T>;
 }
+/** Event raised on list item edits */
 export interface EditEvent<T = Dic> {
   item: T;
   props: Partial<T>;
 }
 type Parse<T, A> = (this: L<T, A>, value: T | A, index: number) => void | T;
+/** List options or parse function */
 export type IList<T, A = T> = {
   key?: keyof T;
   child?: str;
@@ -443,9 +449,17 @@ export class L<T = any, A = T, K extends keyof T = any> extends Array<T> impleme
   parse?: Parse<T, A>;
   binds?: [s: G, fn: Function][];
 }
+/** Alias representing either a standard Array or an Observable List */
 export type Alias<T = any, A = T> = Array<T | A> | L<T, A>;
 
 
+/**
+ * Bind or synchronize a source list to a destination list
+ * @param src Source list
+ * @param dest Destination list
+ * @param fill Whether to initially fill the destination list with source items
+ * @param parse Optional mapping/parsing function for items
+ */
 export function copy<S>(src: L<S, any>, dest: L<S, any>, fill?: bool): void;
 export function copy<S, D, A = D>(src: L<S, any>, dest: L<D, A>, fill: bool, parse: (value: S, index: number) => D | A): void;
 export function copy<S, D, A = D>(src: L<S, any>, dest: L<D, A>, fill = true, parse: (value: S, index: number) => D = v => v as any) {
@@ -466,6 +480,11 @@ export function copy<S, D, A = D>(src: L<S, any>, dest: L<D, A>, fill = true, pa
     }
   });
 }
+/**
+ * Try to push a new item to the list, or edit/update the item if it already exists by key
+ * @param l List instance
+ * @param item Item to push or edit
+ */
 export function tryPush<T, A = T>(l: L<T, A>, item: T) {
   let k = item[l.key] as any;
   if (l.find(v => v[l.key] == k))
@@ -488,6 +507,11 @@ export function edit<T, A = T>(l: L<T, A>, item: ListEditItem<T>): L<T, A> {
   }
   return l;
 }
+/**
+ * Edit/update multiple items in a list
+ * @param l List instance
+ * @param items Items to update
+ */
 export function editItems<T, A = T>(l: L<T, A>, ...items: T[]): L<T, A> {
   let a;
   for (let item of items) {
@@ -504,19 +528,21 @@ export function editItems<T, A = T>(l: L<T, A>, ...items: T[]): L<T, A> {
   return l;
 }
 
+/** Callback function signature for list bond insertion operations */
 export type LBondInsert<T, A = T, TS extends G = G> = (this: L<T, A>, value: T, index?: number, container?: TS) => any;
 
+/** Options defining how list items bond and interact with containers/elements */
 export interface LBond<T = any, A = T, TS extends G = G> {
   /**
-   * metodo que sera chamado no clear, caso n�ot tenha removera um item de cada vez*/
+   * metodo que sera chamado no clear, caso not tenha removera um item de cada vez*/
   clear?: false | ((container: G) => void);
   /**inset an element in arbitrary position
-   se retornar um valor inserira este elemento n�o posi��o do item adicionado*/
+   se retornar um valor inserira este elemento no posio do item adicionado*/
   insert?: LBondInsert<T, A, TS>;
   reload?: (this: L<T, A>, value: T, index?: number, container?: TS) => any;
   /**
    * remove an arbitrary element
-   * se retornar true remove o item naquela posi��o
+   * se retornar true remove o item naquela posio
    * se não definido remove o item automaticamente
    * @param this
    * @param pos
@@ -545,6 +571,11 @@ export interface LBond<T = any, A = T, TS extends G = G> {
   /** */
   tag?: (this: L<T, A>, active: bool, index: number, parent: TS, tag: str, value: T) => void;
 }
+/**
+ * Extend a list or array with Observable List capabilities
+ * @param l List or array to extend
+ * @param opts Options for the list
+ */
 export function extend<T = any, A = T>(l?: Alias<T, A>, opts?: IList<T, A>) {
   if (!l || !(l as L).eh)
     l = orray(l, opts);
@@ -566,6 +597,11 @@ export function extend<T = any, A = T>(l?: Alias<T, A>, opts?: IList<T, A>) {
   return l as L<T, A>;
 }
 
+/**
+ * Create a new Observable List (L) instance
+ * @param array Optional initial array elements or options
+ * @param options List options or parse function
+ */
 export function orray<T = any, A = T>(options: IList<T, A>): L<T, A>;
 export function orray<T = any, A = T>(array?: L<T, A>, options?: Parse<T, A>): L<T, A>;
 export function orray<T = any, A = T>(array?: Alias<T, A>, options?: IList<T, A>): L<T, A>;
@@ -601,6 +637,7 @@ interface GroupEvents<T = any> extends Dic<any[]> {
   remove: [T[]];
   set: GroupSetEvent<T>;
 };
+/** Group set event type representing added and removed items with their indices */
 export type GroupSetEvent<T> = [add?: T[], addId?: int[], remove?: T[], removeId?: int[]];
 function gpush<T, K extends keyof T>(g: Group<T, K>, items: (T | K)[]) {
   let indices: int[] = [], start = g.length;
@@ -621,6 +658,7 @@ function gpush<T, K extends keyof T>(g: Group<T, K>, items: (T | K)[]) {
   }
   return indices;
 }
+/** Class representing a subgroup of items from an Observable List */
 export class Group<T, K extends keyof T> extends Array<T> implements EventObject<GroupEvents<T>> {
   eh: { [P in keyof GroupEvents<T>]?: EventTargetCallback<this, GroupEvents<T>[P]>[] } = {};
   slip?: boolean;
@@ -716,7 +754,15 @@ export class Group<T, K extends keyof T> extends Array<T> implements EventObject
   }
   static get [Symbol.species]() { return Array; }
 }
+/** Callback function signature for group binding events */
 export type GroupBind<T, A = T, TS extends G = G> = (this: L<T, A>, state: boolean, index: number, parent: TS, groupKey: string, item: T) => void;
+/**
+ * Bind a list group state changes to a target G container
+ * @param l Observable List instance
+ * @param s Target container
+ * @param groupKey Key of the group
+ * @param bond Group callback function
+ */
 export function bind<T, A = T, TS extends G = G>(l: L<T, A>, s: TS, groupKey: string, bond: GroupBind<T, A, TS>): TS {
   let g = l.g[groupKey];
   if (g) {
@@ -737,14 +783,18 @@ export function bind<T, A = T, TS extends G = G>(l: L<T, A>, s: TS, groupKey: st
 }
 //#endregion
 
+/** Namespace containing utilities for range-based selections and focus management */
 export namespace range {
+  /** Selection type: set (single), add (multiple toggle), range (continuous), addR (multiple continuous) */
   export type Tp = "set" | "add" | "range" | "addR";
   const clamp = (value: int, min: int, max: int) => value < min ? min : value >= max ? max - 1 : value;
   const tg = (l: L, k: str) => (l.tags ||= {})[k];
+  /** Get index of the pivot tag or default to 0 */
   export function pivot<T, A = T>(l: L<T, A>, tag: str) {
     let t = tg(l, tag);
     return t ? t.i : 0;
   }
+  /** Add value to a selection/range */
   export function add<T, A = T>(l: L<T, A>, key: str, value: T | int | str, tp: Tp) {
     let g = l.g[key];
     let
@@ -798,6 +848,7 @@ export namespace range {
     l.g[tag] && l.g[tag].clear();
     return l;
   }
+  /** Set up tag/selection change listener */
   export function onchange<T, A = T, K extends keyof T = any>(l: L<T, A>, tag: str, listener?: (this: L<T, A>, active: T, selected?: Group<T, K>) => void) {
     let g = l.g[tag];
     g ? g.on(() => {
@@ -816,10 +867,13 @@ export namespace range {
         "range" :
         "set";
 
+  /** Get range selection type from MouseEvent */
   export const eTp = (e: MouseEvent): Tp => tp(e.ctrlKey, e.shiftKey);
+  /** Move selection by a given offset */
   export function move(l: L, tag: str, distance: number, tp: Tp) {
     return add(l, tag, l[clamp(pivot(l, tag) + distance, 0, l.length)], tp);
   }
+  /** Move pivot selection tag index */
   export function movePivot(l: L, tag: str, distance: number, revert?: boolean) {
     let ll = l.length;
     if (ll) {
@@ -830,6 +884,7 @@ export namespace range {
     }
     return l;
   }
+  /** Get items corresponding to the given key tag */
   export function list<T, A = T>(l: L<T, A>, key: str) {
     let tag: Tag<T>, g = l.g[key];
     return g ? g.slice() : ((tag = tg(l, key)) ? [tag.v] : []);
