@@ -282,7 +282,7 @@ export function css(props: Style, defSub: CSSSep = " ", s?: string) {
 // #region ----------main structures ----------------------
 
 /**
- * A Wrapper for an HTML OR SVG Element
+ * A Wrapper for one HTML OR SVG Element
  */
 export class G<T extends HSElement = HTMLElement> {
   readonly e?: T;

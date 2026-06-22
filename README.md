@@ -1,206 +1,246 @@
-# galho
+# Galho 🍃
 
-galho is js library for create and manipulate dom elements without need compiling, configuration or VirtualDom
+A lightweight, high-performance JavaScript/TypeScript library for creating and manipulating DOM elements directly. No build steps, no complex configurations, and no Virtual DOM overhead.
 
-## Why?
+[![npm version](https://img.shields.io/npm/v/galho.svg)](https://www.npmjs.com/package/galho)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-React, Svelte and other modern tools are for a lot of small and medium size project an over engineering **galho** offer a much simple approach because it don’t need any setup, configuration, cli or compilation, it is simply a wrapper around Dom Elements with some other utility for SVG, List and Data Binding
+---
+
+## Why Galho?
+
+While modern frameworks like React, Svelte, or Vue are powerful, they often introduce unnecessary overhead (bundlers, compilation steps, Virtual DOM reconciliation) for small to medium-sized projects. 
+
+**Galho** offers a simpler, closer-to-the-metal approach:
+* **No Build Setup:** Use it directly in the browser via CDN or install via npm. No CLI, no Webpack/Vite config required.
+* **Direct DOM Wrappers:** Works with real DOM elements, making integration with existing codebases seamless.
+* **Declarative and Chainable:** Fluent, jQuery-like chaining API for DOM manipulation.
+* **Built-in Reactivity & Data Binding:** Lightweight reactive components and observable arrays (`orray`) that automatically sync data changes directly to the DOM.
+* **SVG & CSS Helpers:** Easy creation of SVG graphics and programmatic generation of stylesheets with nested selectors.
+
+---
 
 ## Installation
 
-### with npm
-
-` npm i galho `
-
-### with yarn
-
-` yarn install galho `
-
-### with cdn
-
-```js
-import ... from "https://cdn.jsdelivr.net/npm/galho/galho.min.js"
+### Via npm
+```bash
+npm install galho
 ```
 
-or if you prefer this version will declare two global variable called `$` and `g` 
+### Via yarn
+```bash
+yarn add galho
+```
 
+### Via CDN (ES Modules)
+```javascript
+import { g, get } from "https://cdn.jsdelivr.net/npm/galho/galho.min.js";
+```
+
+### Via CDN (IIFE - Browser Globals)
+This version exposes the global variables `$` (equivalent to `get`) and `g` (element builder/wrapper).
 ```html
 <script src="https://cdn.jsdelivr.net/npm/galho/galho-iife.min.js"></script>
 ```
 
+---
 
-## Exemples
+## Core API Reference
 
-### creating and append elements to DOM
+### 1. Element Wrappers (`G` and `M`)
+Galho uses two main classes to wrap real DOM elements:
+* **`G`**: Wraps a single DOM element and provides a chainable API.
+* **`M`**: Wraps multiple DOM elements (inherits from `Array`), letting you apply operations to all of them at once.
 
-```js
+#### The `g()` Helper
+Creates a new element or wraps an existing one:
+```javascript
+import { g } from "galho";
+
+// Create a new element with classes and content
+const button = g("button", "btn btn-primary", "Click Me");
+
+// Create an element with custom properties
+const input = g("input", { type: "text", placeholder: "Type here..." });
+
+// Wrap an existing DOM element
+const body = g(document.body);
+```
+
+#### DOM Queries: `get()` & `getAll()`
+Wrappers around `document.querySelector` and `document.querySelectorAll`:
+```javascript
+import { get, getAll } from "galho";
+
+// Select one element (returns G wrapper)
+const header = get("#header");
+
+// Select multiple elements (returns M wrapper)
+const listItems = getAll(".list-item");
+```
+
+---
+
+## Examples & Walkthroughs
+
+### Creating & Appending Elements
+Create an element, attach event listeners, and append it to the DOM:
+```javascript
 import { g, get } from "galho";
 
-//creating a button, add class 'bt-class', apend content 'Show alert' and add a handler to click event
-let buttton = g("button", "bt-class", "Show alert").on("click",() => {
-    alert("Hello World!")
+// Create a button, add classes, text, and click handler
+const button = g("button", "btn-primary", "Show Alert").on("click", () => {
+    alert("Hello World!");
 });
-//query body element and append the button
+
+// Query body and append the button
 get("body").add(button);
 ```
 
-### Manipulating DOM
-
-```html
-<body>
-    <div id="list" class="old-class">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-    </div>
-</body>
-```
-
-```js
+### DOM Manipulation & Method Chaining
+Galho makes it simple to read, update, and style DOM elements in a single expression:
+```javascript
 import { get } from "galho";
 
-get("#list")
-    //add inline style
-    .css({background:"#e333"})
-    //add class
-    .c("new-class")
-    //remove class
-    .c("old-class",false)
-    //get all children elements
-    .childs()
-    //add event listener to all childs
-    .on("click",()=>alert("Clicked!"))
-    .do((e,i)=>
-        //add attribute 
-        e.attr("title", `This is a the element nº: ${i+1}`))
+get("#my-list")
+    .css({ background: "#f8f9fa", padding: "10px" }) // Apply inline CSS
+    .c("active-list")                                // Add a class
+    .c("old-class", false)                           // Remove a class
+    .childs()                                        // Get all children (returns M wrapper)
+    .on("click", () => alert("Clicked a child!"))    // Bind event to all children
+    .do((child, index) => {                          // Iterate over children
+        child.attr("title", `Item #${index + 1}`);   // Set custom attributes
+    });
 ```
 
-### Todo List
+### Programmatic Styling (CSS-in-JS)
+Write CSS directly in JavaScript with support for nested selectors and pseudo-classes:
+```javascript
+import { g, get, css } from "galho";
 
-for this we are using an utility called orray(Observable aRRAY) that is an array with suport for binding, events, etc.
+// Create the CSS stylesheet content
+const styles = css({
+    h1: {
+        fontSize: "24px",
+        color: "#333"
+    },
+    ".btn-action": {
+        background: "#007bff",
+        border: "none",
+        color: "#fff",
+        padding: "8px 16px",
+        borderRadius: "4px",
+        ":hover": { background: "#0056b3" },
+        ":active": { background: "#004085" }
+    }
+});
 
-```js
+// Query the <head> element and append a new <style> element
+get("head").add(g("style", null, styles));
+```
+
+### Creating SVGs
+Galho includes a specialized `svg` helper to construct vector graphics easily without namespace issues:
+```javascript
+import { svg, get } from "galho";
+
+const canvas = svg('svg', { viewBox: "0 0 100 100", width: "200px" }, [
+    svg('rect', { fill: "#3498db", width: "100", height: "100" }),
+    svg('circle', { fill: "#e74c3c", cx: "50", cy: "50", r: "25" })
+]);
+
+get("body").add(canvas);
+```
+
+### Reactive Components
+For more complex UI state management, extend the `Component` class. You can define properties (`this.p`), listen to changes, and bind properties directly to DOM elements:
+```javascript
+import { Component, g, get } from "galho";
+
+class Counter extends Component {
+    view() {
+        const p = this.p;
+        
+        // When clicked, we trigger set() to modify property 'count'
+        const btnIncrement = g("button", "btn", "+").on("click", () => {
+            this.set("count", p.count + 1);
+        });
+        
+        const btnDecrement = g("button", "btn", "-").on("click", () => {
+            this.set("count", p.count - 1);
+        });
+
+        // We wrap everything in a div and bind the label span to the 'count' property
+        return g("div", "counter-container", [
+            btnDecrement,
+            this.bind(g("span", "label"), span => {
+                span.text(`Count: ${p.count}`);
+            }, "count"),
+            btnIncrement
+        ]);
+    }
+}
+
+// Instantiate component with initial properties
+const counter = new Counter({ count: 0 });
+get("body").add(counter);
+```
+
+### Lists & Data Binding (`orray`)
+`orray` (Observable Array) is a subclass of `Array` equipped with events and reactive binding. When items are added, removed, or updated in an `orray`, the bound DOM container automatically reflects those changes.
+
+Here is a simple Todo List implementation:
+```javascript
 import { g, get } from "galho";
 import orray from "galho/orray.js";
 
-let list = orray(), input=g("input");
+// Initialize an empty observable list
+const todoList = orray();
+const input = g("input", { type: "text", placeholder: "New task..." });
 
 get("body").add([
-    //bind list to created element "ul" i.e. for each change(add, remove, edit) that occur in list will be reflected in the element (ul)
-    list.bind(g("ul"),e=>g("li", [e, g("button",["x"]).on("click",list.remove(e))])),
-    g("form", [
+    g("h3", null, "Tasks"),
+    
+    // Bind the observable list to a UL container.
+    // The second parameter is a factory function that defines how each item in the list is rendered.
+    todoList.bind(
+        g("ul"), 
+        (item) => g("li", null, [
+            g("span", null, item),
+            g("button", null, "✖").on("click", () => todoList.remove(item))
+        ])
+    ),
+    
+    g("form").on("submit", (event) => {
+        event.preventDefault();
+        const value = input.v().trim();
+        if (value) {
+            todoList.push(value);
+            input.v(""); // Clear the input
+        }
+    }, { passive: false }).add([
         input,
-        g("button",{type:"submit"},"Adicionar").on("click",()=>{
-            list.add(input.v());
-            //clear input
-            input.v("");
-        })
+        g("button", { type: "submit" }, "Add Task")
     ])
 ]);
 ```
 
-### jQuery style
+---
 
-```html
-<head>
-    <style>
-        .menu{display:"none"}
-        .dropdown.open .menu{display:"block"}
-    </style>
-</head>
-<body>
-    <div class="dropdown">
-        <div class="menu" name="1">
-            <div class="item">Item 1</div>
-            <div class="item">Item 2</div>
-            <div class="item">Item 3</div>
-        </div>
-    </div>
-    <div class="dropdown">
-        <div class="menu" name="2">
-            <div class="item">Item 1</div>
-            <div class="item">Item 2</div>
-            <div class="item">Item 3</div>
-        </div>
-    </div>
-    <div class="dropdown">
-        <div class="menu" name="3">
-            <div class="item">Item 1</div>
-            <div class="item">Item 2</div>
-            <div class="item">Item 3</div>
-        </div>
-    </div>
-</body>
-```
+## API Summary Table
 
-```js
-import { getAll } from "galho";
+| Helper / Class | Description |
+| :--- | :--- |
+| `g(tagName \| element, props, content)` | Primary constructor/wrapper for DOM elements. Returns a `G` instance. |
+| `get(selector)` | Queries the first matching element. Returns a `G` instance. |
+| `getAll(selector)` | Queries all matching elements. Returns an `M` instance. |
+| `svg(tag, attrs, children)` | Creates elements inside the SVG namespace. |
+| `css(rules)` | Translates JavaScript objects into a CSS string stylesheet (with nesting support). |
+| `orray(items)` | Creates an Observable Array (`L` instance) to bind lists directly to elements. |
+| `Component` | Reactive class component supporting automatic property-based DOM bindings. |
 
-getAll(".dropdown").do(dd=>dd
-    //add event click to toggle class open on dropdown
-    .on("click", ()=>dd.tcls("open"))
-    //search all item inside it show an alert wenever it is ben clicked
-    .query(".item").do(i=>i.on("click", ()=>alert(`Dropdown ${dd.attr("name")} selected ${i.text()}`)))
-)
-```
+---
 
-### SVG
+## License
 
-```js
-import { svg, get } from "galho";
-
-get("body").add(svg('svg', { viewBox: "0 0 100 100" }, [
-    svg('rect', { fill: "blue", width: "100", height:"100" }),
-    svg('rect', { fill: "red", width: "50", height:"50" }),
-    svg('rect', { fill: "green", width:"25", height:"25" }),
-]))
-```
-
-### Simple Styling
-
-```js
-import { css, get } from "galho";
-
-// create css
-let style = css({
-    h1: {
-        fontSize:"20px"
-    },
-    ".bt": {
-        background: "#28C",
-        border: "solid 1px #6AE",
-        ":hover":  { background:"#39D" },
-        ":active": { background:"#59E" },
-    },
-});
-//query for head element and apend an style element with css created above
-get("head").add(g("style", null, style));
-```
-
-### Reactivity
-
-when it came to reactivity **galho** do not use VirtualDom, what it does es to listen to binding.
-
-```js
-import { Component, g, get } from "galho";
-
-///Component permit events and data binding if none of this is needed a function can be used
-class Input extends Component{
-    view(){
-        //this.p represent the properties of this Component 
-        let p = this.p;
-        let input = g("input", { name: p.name, type: p.type })
-        //when user input change the value property and all listeners asociated to it will be release
-        .on("input",()=>this.set("value",input.v()));
-        return div([
-            input,
-            //bind the span element to the value property
-            this.bind(g("span"),s=>s.set("Value: "+p.value),"value")
-        ]);   
-    }
-}
-get("body").add(new Input({name:"input",type:"number"}))
-```
-
+This project is licensed under the MIT License. See [LICENSE](file:///c:/Users/bebet/source/repos/apds/src/pkg/galho/LICENSE) for details.
